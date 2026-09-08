@@ -445,7 +445,10 @@ def answer_question(
     system, user, chunks = build_rag_prompt(question, parsed_result, k=k)
 
     if backend == "ollama":
-        import report_parser as rpx
+        try:
+            import report_parser as rpx
+        except ImportError:
+            from ocr import report_parser as rpx
         if rpx.ollama_is_running():
             try:
                 import requests
@@ -463,7 +466,10 @@ def answer_question(
                 pass  # fall through to raw-passage fallback below
 
     elif backend == "claude":
-        import report_parser as rpx
+        try:
+            import report_parser as rpx
+        except ImportError:
+            from ocr import report_parser as rpx
         if rpx.CLAUDE_AVAILABLE:
             try:
                 response = rpx._get_client().messages.create(

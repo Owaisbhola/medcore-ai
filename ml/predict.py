@@ -79,9 +79,9 @@ class ModelRegistry:
             p = BASE / path
             if p.exists():
                 setattr(self, attr, loader(str(p)))
-                print(f"✅ Loaded {path}")
+                print(f"[OK] Loaded {path}")
             else:
-                print(f"⚠ Model not found: {p}")
+                print(f"[WARN] Model not found: {p}")
         return getattr(self, attr)
 
     @property
@@ -174,23 +174,35 @@ def get_shap_values_rf(model, X: np.ndarray, feature_names: list) -> list[dict]:
             for i, v in enumerate(model.feature_importances_)
         ]
 
-    explainer   = shap.TreeExplainer(model)
-    shap_vals   = explainer.shap_values(X)
+    explainer = shap.TreeExplainer(model)
+    shap_vals = explainer.shap_values(X)
 
-    # For binary classification, shap_values returns list [class0, class1]
+    # For binary classification, shap_values returns list [class0, class1] or 3D array (samples, features, classes)
     # Use class 1 (disease present) values
     if isinstance(shap_vals, list):
-        vals = shap_vals[1][0]
+        vals = shap_vals[1][0] if len(shap_vals) > 1 else shap_vals[0][0]
+    elif hasattr(shap_vals, "ndim") and shap_vals.ndim == 3:
+        vals = shap_vals[0, :, 1] if shap_vals.shape[2] > 1 else shap_vals[0, :, 0]
     else:
         vals = shap_vals[0]
 
     results = []
     for i, (fname, sv) in enumerate(zip(feature_names, vals)):
+        try:
+            if hasattr(sv, "__len__") and len(sv) > 1:
+                sv_val = float(sv[1])
+            elif hasattr(sv, "item"):
+                sv_val = float(sv.item())
+            else:
+                sv_val = float(sv)
+        except Exception:
+            sv_val = float(np.ravel(sv)[0])
+
         results.append({
             "feature":    fname,
-            "importance": round(float(abs(sv)), 4),
-            "shap_value": round(float(sv), 4),
-            "direction":  "positive" if sv > 0 else "negative",
+            "importance": round(abs(sv_val), 4),
+            "shap_value": round(sv_val, 4),
+            "direction":  "positive" if sv_val > 0 else "negative",
         })
 
     return sorted(results, key=lambda x: -x["importance"])

@@ -1078,6 +1078,32 @@ with tab2:
                 '</div>', unsafe_allow_html=True,
             )
 
+        # Oncology Biomarker Telemetry HUD Bar
+        st.markdown("""
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px">
+            <div class="cyber-card" style="padding:12px 14px">
+                <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">Tumour CA-15-3</div>
+                <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#00f0ff;text-shadow:0 0 10px rgba(0,240,255,0.4)">18.4 <span style="font-size:12px;color:#7f9ab8">U/mL</span></div>
+                <div style="font-size:9px;color:#10b981;font-family:'Share Tech Mono',monospace">● Normal (&lt;30 U/mL)</div>
+            </div>
+            <div class="cyber-card" style="padding:12px 14px">
+                <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">CEA Marker</div>
+                <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#10b981;text-shadow:0 0 10px rgba(16,185,129,0.4)">2.1 <span style="font-size:12px;color:#7f9ab8">ng/mL</span></div>
+                <div style="font-size:9px;color:#10b981;font-family:'Share Tech Mono',monospace">● Within Baseline</div>
+            </div>
+            <div class="cyber-card" style="padding:12px 14px">
+                <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">Ki-67 Index</div>
+                <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#ffb142;text-shadow:0 0 10px rgba(255,177,66,0.4)">14%</div>
+                <div style="font-size:9px;color:#ffb142;font-family:'Share Tech Mono',monospace">⚡ Low Proliferation</div>
+            </div>
+            <div class="cyber-card" style="padding:12px 14px">
+                <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">HER2 Status</div>
+                <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#00f0ff;text-shadow:0 0 10px rgba(0,240,255,0.4)">Negative</div>
+                <div style="font-size:9px;color:#10b981;font-family:'Share Tech Mono',monospace">● IHC Score 0/1+</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
         # ── 30-feature form layout ──────────────────────────────────────
         st.markdown('<div class="g-card">', unsafe_allow_html=True)
         st.markdown('<div class="g-card-header"><div class="g-card-title">Tumour Cell Nucleus — All 30 Features</div><span class="g-badge badge-amber">FNA · Wisconsin Dataset</span></div>', unsafe_allow_html=True)
