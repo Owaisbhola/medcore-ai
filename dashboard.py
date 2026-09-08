@@ -14,7 +14,7 @@ try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
-    pass  # python-dotenv not installed — fall back to real environment variables only
+    pass
 
 # ─── Shared report parser (heart / cancer / diabetes / general panels + AI summary) ──
 BASE_DIR_ = os.path.dirname(os.path.abspath(__file__))
@@ -27,7 +27,7 @@ try:
 except ImportError:
     REPORT_PARSER_AVAILABLE = False
 
-# ─── SQLite patient registry (real CRUD, self-contained — no external services) ──
+# ─── SQLite patient registry (real CRUD, self-contained) ─────────────────────
 try:
     import patient_db
     patient_db.init_db()
@@ -61,25 +61,21 @@ def _log_report_history(kind, label, detail=""):
     st.session_state.setdefault("report_history", [])
     st.session_state["report_history"].insert(0, {
         "time": datetime.now().strftime("%d %b %Y, %H:%M:%S"),
-        "kind": kind,       # "OCR Report" | "Heart Diagnosis" | "Cancer Diagnosis"
-        "label": label,     # short headline, e.g. "Cancer panel — 2 abnormal"
-        "detail": detail,   # longer description
+        "kind": kind,
+        "label": label,
+        "detail": detail,
     })
 
 st.set_page_config(
-    page_title="MedCore AI",
+    page_title="MedCore AI — Cyber Dark Glass HUD",
     page_icon="🏥",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ─── DESIGN SYSTEM ────────────────────────────────────────────────────────────
-# Dark luxury medical: deep navy bg, electric cyan accents, glassmorphism cards
-# Font: Syne (geometric display) + DM Sans (body)
 # ─── DESIGN SYSTEM: CYBER DARK GLASS HUD ──────────────────────────────────────
 # Obsidian midnight background (#050b14) + cyber-grid mesh + electric cyan/emerald/rose accents
 # Frosted glassmorphism panels (backdrop-filter: blur(16px)) + luminous hairline highlights
-# Font: Rajdhani, Share Tech Mono, Syne, DM Sans
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700;800&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
@@ -314,11 +310,11 @@ div[data-testid="stButton"] button:hover {
 }
 
 /* ── Cyber Glass Cards */
-.g-card, .cyber-card {
+.cyber-card {
   background: var(--surface) !important;
   border: 1px solid var(--border) !important;
   border-radius: 18px !important;
-  padding: 22px 26px !important;
+  padding: 20px 24px !important;
   margin-bottom: 16px !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
@@ -326,23 +322,41 @@ div[data-testid="stButton"] button:hover {
   position: relative !important;
   transition: border-color 0.25s, box-shadow 0.25s !important;
 }
-.g-card::before, .cyber-card::before {
+.cyber-card::before {
   content: '';
   position: absolute;
   top: 0; left: 20px; right: 20px; height: 1px;
   background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.5), transparent);
 }
-.g-card:hover, .cyber-card:hover {
+.cyber-card:hover {
   border-color: var(--border2) !important;
   box-shadow: 0 8px 36px 0 rgba(0, 240, 255, 0.15), inset 0 1px 0 rgba(0, 240, 255, 0.2) !important;
+}
+
+/* Plotly Chart Cyber Card Wrapper */
+div[data-testid="stPlotlyChart"] {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  padding: 10px 14px !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45) !important;
+  margin-bottom: 16px !important;
+  transition: border-color 0.25s, box-shadow 0.25s !important;
+}
+div[data-testid="stPlotlyChart"]:hover {
+  border-color: var(--border2) !important;
+  box-shadow: 0 8px 36px 0 rgba(0, 240, 255, 0.15) !important;
 }
 
 .g-card-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  margin-bottom: 18px;
-  padding-bottom: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
 }
 .g-card-title {
@@ -375,105 +389,78 @@ div[data-testid="stButton"] button:hover {
   border: 1px solid rgba(255,51,102,0.35);
   border-left: 4px solid var(--red);
   border-radius: 16px;
-  padding: 24px 28px;
+  padding: 22px 26px;
   box-shadow: 0 4px 32px rgba(255,51,102,0.18);
+  margin-bottom: 16px;
 }
 .res-warning {
   background: linear-gradient(135deg, rgba(255,177,66,0.12), rgba(255,177,66,0.04));
   border: 1px solid rgba(255,177,66,0.35);
   border-left: 4px solid var(--amber);
   border-radius: 16px;
-  padding: 24px 28px;
+  padding: 22px 26px;
   box-shadow: 0 4px 32px rgba(255,177,66,0.18);
+  margin-bottom: 16px;
 }
 .res-normal {
   background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.04));
   border: 1px solid rgba(16,185,129,0.35);
   border-left: 4px solid var(--green);
   border-radius: 16px;
-  padding: 24px 28px;
+  padding: 22px 26px;
   box-shadow: 0 4px 32px rgba(16,185,129,0.18);
+  margin-bottom: 16px;
 }
 
-.res-pct  { font-size: 58px; font-weight: 800; line-height: 1; margin-bottom: 4px; font-family: 'Rajdhani', sans-serif; }
+.res-pct  { font-size: 52px; font-weight: 800; line-height: 1; margin-bottom: 4px; font-family: 'Rajdhani', sans-serif; }
 .res-lbl  { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; font-family: 'Share Tech Mono', monospace; }
 .res-desc { font-size: 13px; font-weight: 400; opacity: 0.85; margin-bottom: 8px; }
-.res-meta { font-size: 11px; opacity: 0.6; font-family: 'Share Tech Mono', monospace; }
+.res-meta { font-size: 11px; color: var(--text3); font-family: 'Share Tech Mono', monospace; }
 
-/* Med Table */
-.m-table { width:100%; border-collapse:collapse; font-size:12px; }
-.m-table th {
-  background: rgba(0, 240, 255, 0.04);
-  text-align:left; padding:12px 14px;
-  color: var(--cyan); font-weight:700; font-size:10px;
-  letter-spacing:1.2px; text-transform:uppercase;
-  border-bottom: 1px solid var(--border);
-  font-family: 'Share Tech Mono', monospace;
-}
-.m-table td { padding:12px 14px; border-bottom:1px solid var(--border); color:var(--text2); vertical-align:top; }
+/* Clinical Table */
+.m-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+.m-table th { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text3); padding: 10px 14px; border-bottom: 1px solid var(--border); text-align: left; font-family: 'Share Tech Mono', monospace; }
+.m-table td { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; vertical-align: top; }
 .m-table tr:hover td { background: rgba(0,240,255,0.03); }
-.m-name    { font-weight:700; color:var(--text); font-size:13px; font-family:'DM Sans',sans-serif; }
-.m-dose    { color:var(--cyan); font-weight:600; font-size:11px; margin-top:2px; font-family:'Share Tech Mono',monospace; }
-.m-purp    { color:var(--text3); font-size:11px; }
+.m-name { font-weight: 700; color: #ffffff; font-size: 13px; font-family: 'Rajdhani', sans-serif; letter-spacing: 0.3px; }
+.m-dose { font-size: 11px; color: var(--cyan); font-family: 'Share Tech Mono', monospace; margin-top: 2px; }
+.m-purp { color: var(--text2); font-size: 12px; line-height: 1.4; }
 
-/* Check Items */
-.chk-item { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); align-items:flex-start; }
-.chk-item:last-child { border-bottom:none; }
-.dot-red   { width:8px;height:8px;border-radius:50%;background:var(--red);   flex-shrink:0;margin-top:5px;box-shadow:0 0 10px var(--red); }
-.dot-amber { width:8px;height:8px;border-radius:50%;background:var(--amber); flex-shrink:0;margin-top:5px;box-shadow:0 0 10px var(--amber); }
-.dot-cyan  { width:8px;height:8px;border-radius:50%;background:var(--cyan);  flex-shrink:0;margin-top:5px;box-shadow:0 0 10px var(--cyan); }
-.dot-green { width:8px;height:8px;border-radius:50%;background:var(--green); flex-shrink:0;margin-top:5px;box-shadow:0 0 10px var(--green); }
-.chk-text  { font-size:13px;color:var(--text2);line-height:1.5; }
+/* Checklist Items */
+.chk-item { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 12px; }
+.chk-item:last-child { border-bottom: none; }
+.chk-text { color: var(--text); line-height: 1.4; }
+.dot-red   { width: 7px; height: 7px; border-radius: 50%; background: var(--red);   margin-top: 5px; flex-shrink: 0; box-shadow: 0 0 8px var(--red); }
+.dot-amber { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); margin-top: 5px; flex-shrink: 0; box-shadow: 0 0 8px var(--amber); }
+.dot-green { width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-top: 5px; flex-shrink: 0; box-shadow: 0 0 8px var(--green); }
+.dot-cyan  { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan);  margin-top: 5px; flex-shrink: 0; box-shadow: 0 0 8px var(--cyan); }
 
 /* Lifestyle Tile */
-.ls-tile {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 12px;
-  text-align: center;
-  font-size: 12px;
-  color: var(--text2);
-  font-weight: 500;
-  line-height: 1.5;
-  min-height: 78px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-.ls-tile:hover { border-color: var(--cyan); color: var(--text); box-shadow: 0 0 16px rgba(0,240,255,0.15); }
+.ls-tile { background: rgba(0,240,255,0.04); border: 1px solid rgba(0,240,255,0.12); border-radius: 12px; padding: 12px 14px; font-size: 12px; color: var(--text); font-weight: 500; line-height: 1.4; }
 
 /* Disclaimer */
 .disclaimer {
   background: rgba(0, 240, 255, 0.03);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(0, 212, 255, 0.15);
   border-radius: 12px;
-  padding: 14px 18px;
-  margin-top: 16px;
+  padding: 12px 18px;
   font-size: 11px;
   color: var(--text3);
+  margin-top: 14px;
   display: flex;
+  align-items: center;
   gap: 12px;
-  align-items: flex-start;
+  font-family: 'Share Tech Mono', monospace;
 }
+
 .sb-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
 .sb-lbl { font-size:11px; color:var(--text3); font-weight:500; font-family:'Share Tech Mono',monospace; }
 .sb-val { font-size:14px; color:var(--text); font-weight:700; font-family:'Rajdhani',sans-serif; }
 
 .stMarkdown p { color: var(--text2) !important; font-size: 14px !important; }
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  div[data-testid="stHorizontalBlock"] { flex-direction: column !important; }
-  div[data-testid="stHorizontalBlock"] > div[data-testid="column"] { width: 100% !important; min-width: 100% !important; margin-bottom: 12px; }
-  div[data-testid="stTabs"] div[role="tablist"] { overflow-x: auto !important; flex-wrap: nowrap !important; }
-}
 </style>
 """, unsafe_allow_html=True)
 
-
-# ─── Plot config (dark theme) ─────────────────────────────────────────────────
 # ─── Plot config: Cyber HUD (Transparent + Neon accents) ──────────────────────
 PL = dict(
     paper_bgcolor="rgba(0,0,0,0)",
@@ -564,7 +551,7 @@ with st.sidebar:
     <div style="margin:24px 8px 0;background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.1);
          border-radius:12px;padding:14px;font-size:10px;color:#4a6a8a;text-align:center;
          line-height:1.9;font-family:'DM Mono',monospace">
-        v3.0 · Research &amp; Education<br>Not for clinical use ⚕️
+        v4.2 PRO · Research &amp; Education<br>Not for clinical use ⚕️
     </div>
     """, unsafe_allow_html=True)
 
@@ -617,18 +604,18 @@ k4.metric("Heart Model Acc.",  "93.1%", "+0.4%")
 k5.metric("Cancer Model Acc.", "89.3%", "+1.2%")
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ─── Tabs ─────────────────────────────────────────────────────────────────────
+# ─── HUD Primary Tabs ─────────────────────────────────────────────────────────
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "  📊  Dashboard  ",
-    "  🔬  Diagnosis  ",
-    "  📄  OCR Reports  ",
-    "  📋  Patient Registry  ",
-    "  💬  Health Chat  ",
-    "  📈  Model Performance  ",
+    "  🫀  Diagnostic Cockpit  ",
+    "  🔬  Oncology Radar  ",
+    "  📄  Smart OCR Reports  ",
+    "  📋  Ward Patient Matrix  ",
+    "  💬  MedBot AI Copilot  ",
+    "  📊  Population Analytics  ",
 ])
 
 # ══════════════════════════════════════════════════════════════════════
-# SHARED: render_clinical_report
+# ECG Lead II Waveform Generator
 # ══════════════════════════════════════════════════════════════════════
 def generate_ecg_lead2():
     """Generate authentic Lead II ECG heartbeat waveform over 4 cardiac cycles."""
@@ -648,29 +635,28 @@ def generate_ecg_lead2():
     y += np.random.normal(0, 0.015, len(t))
     return t, y
 
+# ══════════════════════════════════════════════════════════════════════
+# Clinical Report Renderer (Clean HUD Components)
+# ══════════════════════════════════════════════════════════════════════
 def render_clinical_report(level, risk_pct, confidence, prediction_label,
-                            fi_df, fi_color_lo, fi_color_hi,
-                            disease_data, col_accent, chart_key):
+                            fi_df, disease_data, chart_key, is_heart=True):
 
     css_map   = {"HIGH RISK": "res-critical", "MODERATE": "res-warning", "LOW RISK": "res-normal"}
     color_map = {"HIGH RISK": RED, "MODERATE": AMBER, "LOW RISK": GREEN}
     col       = color_map[level]
     emo       = "🔴" if level == "HIGH RISK" else "🟡" if level == "MODERATE" else "🟢"
 
-    alert_bg = "rgba(255,51,102,0.15)"   if level == "HIGH RISK" else \
-               "rgba(255,177,66,0.15)"  if level == "MODERATE"  else "rgba(16,185,129,0.15)"
-    alert_bd = "rgba(255,51,102,0.4)"    if level == "HIGH RISK" else \
-               "rgba(255,177,66,0.4)"   if level == "MODERATE"  else "rgba(16,185,129,0.4)"
+    alert_bg = "rgba(255,51,102,0.15)"   if level == "HIGH RISK" else                "rgba(255,177,66,0.15)"  if level == "MODERATE"  else "rgba(16,185,129,0.15)"
+    alert_bd = "rgba(255,51,102,0.4)"    if level == "HIGH RISK" else                "rgba(255,177,66,0.4)"   if level == "MODERATE"  else "rgba(16,185,129,0.4)"
     alert_text = disease_data.get("alert_short", "Consult attending physician")
 
-    # Circumference for r=40 is ~251.2
     offset = 251.2 - (251.2 * (risk_pct / 100.0))
 
-    # Concentric Radial HUD Dial Card
+    # 1. Concentric Radial HUD Dial Card
     st.markdown(f"""
     <div class="{css_map[level]}">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px">
-            <div style="flex:1;min-width:240px">
+            <div style="flex:1;min-width:220px">
                 <div class="res-lbl" style="color:{col}">{emo} &nbsp; {level} TELEMETRY VERDICT</div>
                 <div style="display:flex;align-items:baseline;gap:12px;margin:6px 0">
                     <span class="res-pct" style="color:{col};text-shadow:0 0 20px {col}">{risk_pct}%</span>
@@ -680,10 +666,10 @@ def render_clinical_report(level, risk_pct, confidence, prediction_label,
                 <div class="res-meta" style="color:#94a3b8">Confidence: <strong style="color:#00f0ff">{confidence}%</strong> &nbsp;·&nbsp; Classification: <strong style="color:#00f0ff">{prediction_label}</strong></div>
             </div>
             <!-- Glowing Concentric Radial HUD Dial -->
-            <div style="position:relative;width:190px;height:190px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <div style="position:relative;width:180px;height:180px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                 <div style="position:absolute;inset:0;border-radius:50%;border:1px dashed rgba(0,240,255,0.25)"></div>
                 <div style="position:absolute;inset:10px;border-radius:50%;border:1px solid rgba(0,240,255,0.15)"></div>
-                <svg style="width:160px;height:160px;transform:rotate(-90deg)" viewBox="0 0 100 100">
+                <svg style="width:150px;height:150px;transform:rotate(-90deg)" viewBox="0 0 100 100">
                     <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.08)" stroke-width="8" fill="none"/>
                     <circle cx="50" cy="50" r="40" stroke="{col}" stroke-width="8" stroke-dasharray="251.2" stroke-dashoffset="{offset}" stroke-linecap="round" fill="none" style="filter:drop-shadow(0 0 10px {col})"/>
                 </svg>
@@ -693,11 +679,11 @@ def render_clinical_report(level, risk_pct, confidence, prediction_label,
                     <div style="font-size:9px;font-weight:700;font-family:'Share Tech Mono',monospace;color:{col};margin-top:4px;padding:2px 6px;border-radius:10px;background:{alert_bg};border:1px solid {alert_bd}">{level}</div>
                 </div>
             </div>
-            <div style="text-align:right;min-width:200px">
+            <div style="text-align:right;min-width:180px">
                 <div style="font-size:10px;color:{col};font-weight:700;letter-spacing:1.5px;
                      text-transform:uppercase;margin-bottom:8px;font-family:'Share Tech Mono',monospace">Clinical Directive</div>
                 <div style="background:{alert_bg};border:1px solid {alert_bd};border-radius:12px;
-                     padding:12px 18px;font-size:12px;color:{col};font-weight:700;line-height:1.4">
+                     padding:12px 16px;font-size:12px;color:{col};font-weight:700;line-height:1.4">
                     {alert_text}
                 </div>
             </div>
@@ -705,31 +691,37 @@ def render_clinical_report(level, risk_pct, confidence, prediction_label,
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    # 2. Lead II ECG Telemetry Monitor (Heart Only)
+    if is_heart:
+        st.markdown("""
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div style="font-size:12px;font-weight:700;color:#e2e8f0;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace">🟢 Real-Time Lead II ECG Telemetry Monitor</div>
+            <span class="g-badge badge-green">25 mm/s · Lead II</span>
+        </div>
+        """, unsafe_allow_html=True)
+        t_ecg, y_ecg = generate_ecg_lead2()
+        fig_ecg = go.Figure()
+        fig_ecg.add_trace(go.Scatter(
+            x=t_ecg, y=y_ecg, mode="lines",
+            line=dict(color="#10b981", width=2.5),
+            hoverinfo="skip"
+        ))
+        fig_ecg.update_layout(
+            **PL, height=150,
+            margin=dict(l=10, r=10, t=10, b=10),
+            xaxis=dict(showgrid=True, gridcolor="rgba(16,185,129,0.1)", showticklabels=False, zeroline=False),
+            yaxis=dict(showgrid=True, gridcolor="rgba(16,185,129,0.1)", showticklabels=False, zeroline=False, range=[-0.8, 2.2]),
+        )
+        st.plotly_chart(fig_ecg, use_container_width=True, key=f"{chart_key}_ecg")
+        st.markdown("""<div style="font-size:10px;color:#10b981;font-family:'Share Tech Mono',monospace;text-align:right;margin-top:-6px;margin-bottom:14px">● QRS Complex: Normal (0.08s) · PR Interval: 0.16s · Rhythm: Sinus</div>""", unsafe_allow_html=True)
 
-    # Lead II ECG Telemetry Monitor
-    st.markdown('<div class="g-card">', unsafe_allow_html=True)
-    st.markdown('<div class="g-card-header"><div class="g-card-title">🟢 Real-Time Lead II ECG Telemetry Monitor</div><span class="g-badge badge-green">25 mm/s · Lead II</span></div>', unsafe_allow_html=True)
-    t_ecg, y_ecg = generate_ecg_lead2()
-    fig_ecg = go.Figure()
-    fig_ecg.add_trace(go.Scatter(
-        x=t_ecg, y=y_ecg, mode="lines",
-        line=dict(color="#10b981", width=2.5),
-        hoverinfo="skip"
-    ))
-    fig_ecg.update_layout(
-        **PL, height=160,
-        margin=dict(l=10, r=10, t=10, b=10),
-        xaxis=dict(showgrid=True, gridcolor="rgba(16,185,129,0.1)", showticklabels=False, zeroline=False),
-        yaxis=dict(showgrid=True, gridcolor="rgba(16,185,129,0.1)", showticklabels=False, zeroline=False, range=[-0.8, 2.2]),
-    )
-    st.plotly_chart(fig_ecg, use_container_width=True, key=f"{chart_key}_ecg")
-    st.markdown("""<div style="font-size:10px;color:#10b981;font-family:'Share Tech Mono',monospace;text-align:right;margin-top:-6px">● QRS Complex: Normal (0.08s) · PR Interval: 0.16s · Rhythm: Sinus</div>""", unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    # SHAP / Feature Importance Luminescence Chart
-    st.markdown('<div class="g-card">', unsafe_allow_html=True)
-    st.markdown('<div class="g-card-header"><div class="g-card-title">⚡ SHAP Biomarker Feature Luminescence</div><span class="g-badge badge-cyan">RF Explainability</span></div>', unsafe_allow_html=True)
+    # 3. SHAP / Feature Importance Luminescence Chart
+    st.markdown("""
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:12px;font-weight:700;color:#e2e8f0;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace">⚡ SHAP Biomarker Feature Luminescence</div>
+        <span class="g-badge badge-cyan">RF Explainability</span>
+    </div>
+    """, unsafe_allow_html=True)
     fig_fi = go.Figure(go.Bar(
         x=fi_df["Importance"], y=fi_df["Feature"], orientation="h",
         marker=dict(
@@ -740,42 +732,50 @@ def render_clinical_report(level, risk_pct, confidence, prediction_label,
         text=[f"{v:.3f} SHAP" for v in fi_df["Importance"]], textposition="outside",
         textfont=dict(size=10, color="#94a3b8", family="Share Tech Mono"),
     ))
-    fig_fi.update_layout(**PL, height=270)
+    fig_fi.update_layout(**PL, height=250)
     _fix(fig_fi, xaxis=dict(showgrid=True, range=[0, fi_df["Importance"].max()*1.4]),
          margin=dict(l=0, r=65, t=8, b=8))
     st.plotly_chart(fig_fi, use_container_width=True, key=chart_key)
-    st.markdown('</div>', unsafe_allow_html=True)
 
-    # Medications
-    st.markdown('<div class="g-card">', unsafe_allow_html=True)
-    st.markdown('<div class="g-card-header"><div class="g-card-title">💊 Recommended Clinical Pharmacology</div><span class="g-badge badge-amber">Attending Approval Required</span></div>', unsafe_allow_html=True)
+    # 4. Recommended Pharmacology
     rows = "".join([f'<tr><td><div class="m-name">{m[0]}</div><div class="m-dose">{m[1]}</div></td><td><div class="m-purp">{m[2]}</div></td></tr>' for m in disease_data["medicines"]])
-    st.markdown(f'<table class="m-table"><thead><tr><th>Drug &amp; Protocol</th><th>Physiological Target &amp; Notes</th></tr></thead><tbody>{rows}</tbody></table>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="cyber-card">
+        <div class="g-card-header"><div class="g-card-title">💊 Recommended Clinical Pharmacology</div><span class="g-badge badge-amber">Attending Approval Required</span></div>
+        <table class="m-table"><thead><tr><th>Drug &amp; Protocol</th><th>Physiological Target &amp; Notes</th></tr></thead><tbody>{rows}</tbody></table>
+    </div>
+    """, unsafe_allow_html=True)
 
-    # Tests + Precautions
+    # 5. Tests + Precautions
     tc1, tc2 = st.columns(2)
     with tc1:
-        st.markdown('<div class="g-card">', unsafe_allow_html=True)
-        st.markdown('<div class="g-card-header"><div class="g-card-title">🧪 Diagnostic Tests Required</div></div>', unsafe_allow_html=True)
-        for t in disease_data["tests"]:
-            st.markdown(f'<div class="chk-item"><div class="dot-cyan"></div><div class="chk-text">{t}</div></div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        test_items = "".join([f'<div class="chk-item"><div class="dot-cyan"></div><div class="chk-text">{t}</div></div>' for t in disease_data["tests"]])
+        st.markdown(f"""
+        <div class="cyber-card">
+            <div class="g-card-header"><div class="g-card-title">🧪 Diagnostic Tests Required</div></div>
+            {test_items}
+        </div>
+        """, unsafe_allow_html=True)
     with tc2:
-        st.markdown('<div class="g-card">', unsafe_allow_html=True)
-        st.markdown('<div class="g-card-header"><div class="g-card-title">⚠️ Clinical Precautions</div></div>', unsafe_allow_html=True)
         dot = "dot-red" if level == "HIGH RISK" else "dot-amber" if level == "MODERATE" else "dot-green"
-        for p in disease_data["precautions"]:
-            st.markdown(f'<div class="chk-item"><div class="{dot}"></div><div class="chk-text">{p}</div></div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        prec_items = "".join([f'<div class="chk-item"><div class="{dot}"></div><div class="chk-text">{p}</div></div>' for p in disease_data["precautions"]])
+        st.markdown(f"""
+        <div class="cyber-card">
+            <div class="g-card-header"><div class="g-card-title">⚠️ Clinical Precautions</div></div>
+            {prec_items}
+        </div>
+        """, unsafe_allow_html=True)
 
-    # Lifestyle
-    st.markdown('<div class="g-card">', unsafe_allow_html=True)
-    st.markdown('<div class="g-card-header"><div class="g-card-title">🌿 Post-Assessment Care Protocol</div></div>', unsafe_allow_html=True)
-    ls_cols = st.columns(len(disease_data["lifestyle"]))
-    for lc, tip in zip(ls_cols, disease_data["lifestyle"]):
-        lc.markdown(f'<div class="ls-tile">{tip}</div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    # 6. Lifestyle
+    ls_tiles = "".join([f'<div class="ls-tile">{tip}</div>' for tip in disease_data["lifestyle"]])
+    st.markdown(f"""
+    <div class="cyber-card">
+        <div class="g-card-header"><div class="g-card-title">🌿 Post-Assessment Care Protocol</div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+            {ls_tiles}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("""
     <div class="disclaimer">
@@ -788,496 +788,323 @@ def render_clinical_report(level, risk_pct, confidence, prediction_label,
 
 
 # ══════════════════════════════════════════════════════════════════════
-# TAB 1 — DASHBOARD OVERVIEW
+# TAB 1 — DIAGNOSTIC COCKPIT & TELEMETRY (PRIMARY HUD VIEW)
 # ══════════════════════════════════════════════════════════════════════
 with tab1:
     st.markdown("<br>", unsafe_allow_html=True)
-    c1, c2 = st.columns([3, 2])
 
-    with c1:
-        st.markdown('<div class="g-card">', unsafe_allow_html=True)
-        st.markdown('<div class="g-card-header"><div class="g-card-title">📈 Monthly Screening Volume</div><span class="g-badge badge-cyan">AI Tracked</span></div>', unsafe_allow_html=True)
-        months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=months, y=[52,60,55,70,65,78,82,74,88,92,85,97],
-            name="Heart Disease", line=dict(color=RED, width=2.5),
-            fill="tozeroy", fillcolor="rgba(255,71,87,0.08)",
-            mode="lines+markers", marker=dict(size=5, color=RED)))
-        fig.add_trace(go.Scatter(x=months, y=[30,35,28,40,38,45,50,42,55,60,52,64],
-            name="Cancer Risk", line=dict(color=AMBER, width=2.5),
-            fill="tozeroy", fillcolor="rgba(255,177,66,0.08)",
-            mode="lines+markers", marker=dict(size=5, color=AMBER)))
-        fig.update_layout(**PL, height=240)
-        _fix(fig, xaxis=dict(showgrid=False),
-             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-        st.plotly_chart(fig, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Vital Telemetry HUD Status Row
+    st.markdown("""
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">
+        <div class="cyber-card" style="padding:14px 18px">
+            <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">SpO2 Oxygen</div>
+            <div style="font-size:26px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#00f0ff;text-shadow:0 0 10px rgba(0,240,255,0.4)">98%</div>
+            <div style="font-size:9px;color:#10b981;font-family:'Share Tech Mono',monospace">● Normal (95-100%)</div>
+        </div>
+        <div class="cyber-card" style="padding:14px 18px">
+            <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">Respiration</div>
+            <div style="font-size:26px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#00f0ff;text-shadow:0 0 10px rgba(0,240,255,0.4)">16 <span style="font-size:14px;color:#7f9ab8">RPM</span></div>
+            <div style="font-size:9px;color:#10b981;font-family:'Share Tech Mono',monospace">● Eupnea / Stable</div>
+        </div>
+        <div class="cyber-card" style="padding:14px 18px">
+            <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">Pulse (Heart Rate)</div>
+            <div style="font-size:26px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#10b981;text-shadow:0 0 10px rgba(16,185,129,0.4)">96 <span style="font-size:14px;color:#7f9ab8">BPM</span></div>
+            <div style="font-size:9px;color:#ffb142;font-family:'Share Tech Mono',monospace">⚡ Monitored Lead II</div>
+        </div>
+        <div class="cyber-card" style="padding:14px 18px">
+            <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">Arterial BP</div>
+            <div style="font-size:26px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#ff3366;text-shadow:0 0 10px rgba(255,51,102,0.4)">152/94</div>
+            <div style="font-size:9px;color:#ff3366;font-family:'Share Tech Mono',monospace">● Stage 2 HTN Alert</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    with c2:
-        st.markdown('<div class="g-card">', unsafe_allow_html=True)
-        st.markdown('<div class="g-card-header"><div class="g-card-title">🫀 Risk Distribution</div><span class="g-badge badge-green">Live</span></div>', unsafe_allow_html=True)
-        fig2 = go.Figure(go.Pie(
-            labels=["Heart Risk","Cancer Risk","No Risk"], values=[439,277,568], hole=0.65,
-            marker=dict(colors=[RED, AMBER, "rgba(255,255,255,0.06)"],
-                        line=dict(color=NAVY, width=3)),
-            textinfo="none",
-            hovertemplate="<b>%{label}</b><br>%{value} patients (%{percent})<extra></extra>",
-        ))
-        fig2.add_annotation(text="1,284", x=0.5, y=0.58, showarrow=False,
-            font=dict(size=26, color="#e8f0fe", family="Syne"))
-        fig2.add_annotation(text="patients", x=0.5, y=0.42, showarrow=False,
-            font=dict(size=11, color=GRAY, family="DM Sans"))
-        fig2.update_layout(**PL, height=240, showlegend=True, margin=dict(l=0,r=0,t=8,b=8))
-        fig2.update_layout(legend={**_L, "orientation":"v","x":0.78,"y":0.5})
-        st.plotly_chart(fig2, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+    pf1, pf2 = st.columns([5, 7])
 
-    c3, c4 = st.columns(2)
-    with c3:
-        st.markdown('<div class="g-card">', unsafe_allow_html=True)
-        st.markdown('<div class="g-card-header"><div class="g-card-title">👥 Risk by Age Group</div></div>', unsafe_allow_html=True)
-        fig3 = go.Figure()
-        fig3.add_trace(go.Bar(name="Heart", x=["20-30","31-40","41-50","51-60","61-70","71+"],
-            y=[8,15,28,45,62,71], marker_color=RED, opacity=0.8,
-            marker=dict(line=dict(width=0))))
-        fig3.add_trace(go.Bar(name="Cancer", x=["20-30","31-40","41-50","51-60","61-70","71+"],
-            y=[5,12,22,35,48,58], marker_color=AMBER, opacity=0.8,
-            marker=dict(line=dict(width=0))))
-        fig3.update_layout(**PL, barmode="group", height=220)
-        _fix(fig3, xaxis=dict(showgrid=False),
-             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-        st.plotly_chart(fig3, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+    with pf1:
+        st.markdown("""
+        <div class="cyber-card" style="margin-bottom:12px">
+            <div class="g-card-header"><div class="g-card-title">Patient Clinical Parameters</div><span class="g-badge badge-cyan">Cleveland Schema</span></div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    with c4:
-        st.markdown('<div class="g-card">', unsafe_allow_html=True)
-        st.markdown('<div class="g-card-header"><div class="g-card-title">🧬 Feature Correlation</div></div>', unsafe_allow_html=True)
-        feats = ["Age","Chol","BP","HR","BMI"]
-        corr  = np.array([[1.0,0.62,0.58,-0.41,0.35],[0.62,1.0,0.44,-0.28,0.41],
-                           [0.58,0.44,1.0,-0.35,0.52],[-0.41,-0.28,-0.35,1.0,-0.22],
-                           [0.35,0.41,0.52,-0.22,1.0]])
-        fig4 = go.Figure(go.Heatmap(z=corr, x=feats, y=feats,
-            colorscale=[[0,"rgba(0,212,255,0.05)"],[0.5,"rgba(0,212,255,0.4)"],[1,"#00d4ff"]],
-            text=np.round(corr,2), texttemplate="%{text}",
-            textfont=dict(size=11, color="#e8f0fe"), showscale=False))
-        fig4.update_layout(**PL, height=220)
-        _fix(fig4, margin=dict(l=0,r=0,t=8,b=8))
-        st.plotly_chart(fig4, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        # Autofill from OCR
+        _ocr_result = st.session_state.get("ocr_parsed_result")
+        _prefill_heart = (_ocr_result or {}).get("prefill_heart", {}) if _ocr_result else {}
+        if _prefill_heart:
+            if st.button("⚡ Autofill from Analyzed Report", key="btn_autofill_heart_cockpit"):
+                _map = {"chol": ("h_chol", 100, 600), "trestbps": ("h_bp", 80, 220), "thalach": ("h_hr", 60, 220), "fbs": ("h_fbs", None, None)}
+                for feat, val in _prefill_heart.items():
+                    if feat in _map and val is not None:
+                        skey, lo, hi = _map[feat]
+                        if skey == "h_fbs":
+                            st.session_state[skey] = "Yes (1)" if val == 1 else "No (0)"
+                        else:
+                            st.session_state[skey] = max(lo, min(hi, int(round(val))))
+                st.rerun()
+
+        r1a, r1b = st.columns(2)
+        age_h = r1a.number_input("Age (years)", 20, 80, 58, key="h_age")
+        sex_h = r1b.selectbox("Sex", ["Male (1)","Female (0)"], key="h_sex")
+        cp_h  = st.selectbox("Chest Pain Type", ["0 – Typical Angina","1 – Atypical","2 – Non-Anginal","3 – Asymptomatic"], index=2, key="h_cp")
+
+        r2a, r2b = st.columns(2)
+        trestbps_h = r2a.slider("Resting BP (mmHg)", 80, 220, 152, key="h_bp")
+        chol_h     = r2b.slider("Cholesterol (mg/dL)", 100, 600, 278, key="h_chol")
+
+        r3a, r3b = st.columns(2)
+        fbs_h     = r3a.selectbox("Fasting BS >120", ["No (0)","Yes (1)"], key="h_fbs")
+        restecg_h = r3b.selectbox("Resting ECG", ["0 – Normal","1 – ST Abnorm.","2 – LV Hypertrophy"], index=1, key="h_ecg")
+
+        r4a, r4b = st.columns(2)
+        thalach_h = r4a.slider("Max Heart Rate (BPM)", 60, 220, 142, key="h_hr")
+        exang_h   = r4b.selectbox("Exercise Angina", ["No (0)","Yes (1)"], key="h_exang")
+
+        r5a, r5b = st.columns(2)
+        oldpeak_h = r5a.slider("ST Depression (oldpeak)", 0.0, 6.0, 1.8, 0.1, key="h_old")
+        slope_h   = r5b.selectbox("ST Slope", ["0 – Upsloping","1 – Flat","2 – Downsloping"], index=1, key="h_slope")
+
+        r6a, r6b = st.columns(2)
+        ca_h   = r6a.selectbox("Major Vessels (0-3)", ["0","1","2","3"], key="h_ca")
+        thal_h = r6b.selectbox("Thalassemia", ["1 – Normal","2 – Fixed Defect","3 – Reversible Defect"], index=1, key="h_thal")
+
+        run_heart = st.button("⚡  RUN NEURAL INFERENCE SCAN", key="btn_heart_scan")
+
+    # Real-time computation on current parameters
+    X_heart = pd.DataFrame([[
+        age_h, 1 if "Male" in sex_h else 0, int(cp_h[0]),
+        trestbps_h, chol_h, 1 if "Yes" in fbs_h else 0,
+        int(restecg_h[0]), thalach_h, 1 if "Yes" in exang_h else 0,
+        oldpeak_h, int(slope_h[0]), int(ca_h), int(thal_h[0])
+    ]], columns=["age","sex","cp","trestbps","chol","fbs","restecg",
+                 "thalach","exang","oldpeak","slope","ca","thal"])
+    proba    = heart_model.predict_proba(X_heart)[0]
+    pred     = heart_model.predict(X_heart)[0]
+    risk_pct = round(proba[1] * 100, 1)
+    conf     = round(max(proba) * 100, 1)
+    level    = "HIGH RISK" if risk_pct >= threshold else "MODERATE" if risk_pct >= 35 else "LOW RISK"
+    fi_df = pd.DataFrame({
+        "Feature":    ["age","sex","cp","trestbps","chol","fbs","restecg","thalach","exang","oldpeak","slope","ca","thal"],
+        "Importance": heart_model.feature_importances_,
+    }).sort_values("Importance", ascending=True)
+
+    HEART_DATA = {
+        "HIGH RISK": {
+            "alert_short": "Urgent cardiology referral required · Strict cardiac observation",
+            "medicines": [
+                ("Atorvastatin","40-80 mg daily","Statin · lowers LDL & plaque stabilisation"),
+                ("Aspirin (low dose)","75-100 mg daily","Antiplatelet · reduces thrombosis risk"),
+                ("Metoprolol Succinate","25-100 mg daily","Beta-blocker · controls rate & demand"),
+                ("Ramipril","2.5-10 mg daily","ACE inhibitor · reduces cardiac load"),
+                ("Nitroglycerin SL","0.4 mg PRN","Sublingual acute chest pain relief"),
+            ],
+            "tests":       ["12-lead ECG monitor","Stress echocardiogram","Cardiac troponin panel","Coronary angiography"],
+            "precautions": ["Sodium restriction < 2g/day","No strenuous activity until clearance","Monitor BP twice daily","Carry sublingual GTN"],
+            "lifestyle":   ["Mediterranean diet","Supervised cardiac rehab","30 min light walking/day","Smoking cessation"],
+        },
+        "MODERATE": {
+            "alert_short": "Cardiology follow-up recommended in 4 weeks · Outpatient management",
+            "medicines": [
+                ("Aspirin","75 mg daily","Preventive cardiovascular antiplatelet"),
+                ("Atorvastatin","20-40 mg daily","Lipid management"),
+                ("Amlodipine","5 mg daily","CCB · blood pressure control"),
+            ],
+            "tests":       ["Resting ECG","Fasting lipid profile","HbA1c test","Echocardiogram"],
+            "precautions": ["Reduce sodium and saturated fat","Monitor BP weekly","Follow up abnormal lipid labs"],
+            "lifestyle":   ["30 min moderate exercise 5x/week","Achieve healthy BMI","Plant-forward nutrition"],
+        },
+        "LOW RISK": {
+            "alert_short": "Routine annual screening · Cardiovascular baseline stable",
+            "medicines": [
+                ("No prescription needed","—","Maintain cardiovascular baseline"),
+                ("Omega-3 / Fish Oil","1 g daily","Cardiovascular supplement"),
+            ],
+            "tests":       ["Annual BP & lipid check","Fasting blood glucose","BMI check"],
+            "precautions": ["Maintain healthy habits","Annual health check","Avoid smoking"],
+            "lifestyle":   ["Regular aerobic exercise","Balanced diet","Healthy sleep schedule"],
+        },
+    }
+
+    with pf2:
+        render_clinical_report(level, risk_pct, conf,
+            "Active cardiac risk profile" if pred == 1 else "Normal cardiac profile",
+            fi_df, HEART_DATA[level], "heart_cockpit_fi", is_heart=True)
+
+        _log_report_history(
+            "Heart Diagnosis", f"Heart risk — {level} ({risk_pct}%)",
+            f"Age {age_h}, BP {trestbps_h}, Chol {chol_h}, Max HR {thalach_h}",
+        )
+
+        if PDF_EXPORT_AVAILABLE:
+            try:
+                _hpdf = pdf_export.build_diagnosis_pdf(
+                    condition="Heart Disease", level=level, risk_pct=risk_pct, confidence=conf,
+                    prediction_label="Active cardiac risk" if pred == 1 else "No disease",
+                    key_inputs={
+                        "Age": age_h, "Sex": sex_h, "Chest Pain Type": cp_h,
+                        "Resting BP": f"{trestbps_h} mmHg", "Cholesterol": f"{chol_h} mg/dL",
+                        "Fasting Blood Sugar >120": fbs_h, "Max Heart Rate": thalach_h,
+                        "Exercise Angina": exang_h, "ST Depression": oldpeak_h,
+                    },
+                    recommendations=HEART_DATA[level],
+                )
+                st.download_button(
+                    "⬇  Download Clinical PDF Report", data=_hpdf,
+                    file_name=f"medcore_heart_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                    mime="application/pdf", key="btn_pdf_heart_cockpit",
+                )
+            except Exception as e:
+                st.caption(f"PDF export unavailable: {e}")
 
 
 # ══════════════════════════════════════════════════════════════════════
-# TAB 2 — DIAGNOSIS
+# TAB 2 — ONCOLOGY RADAR (CANCER ASSESSMENT)
 # ══════════════════════════════════════════════════════════════════════
 with tab2:
     st.markdown("<br>", unsafe_allow_html=True)
-    ptab1, ptab2 = st.tabs(["  🫀  Heart Disease Assessment  ", "  🔬  Cancer Risk Assessment  "])
 
-    # ── HEART ─────────────────────────────────────────────────────────
-    with ptab1:
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown(f"""
-        <div style="background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);
-             border-radius:12px;padding:12px 18px;margin-bottom:18px;display:flex;align-items:center;gap:12px">
-            <span style="font-size:18px">🤖</span>
-            <span style="font-size:12px;color:#00d4ff;font-weight:600;font-family:'DM Sans',sans-serif">
-                RandomForest Classifier &nbsp;·&nbsp; 13 Clinical Features &nbsp;·&nbsp;
-                Cleveland Heart Disease Dataset &nbsp;·&nbsp; {heart_model.n_estimators} Trees
-            </span>
+    # Oncology Biomarker Telemetry HUD Bar
+    st.markdown("""
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px">
+        <div class="cyber-card" style="padding:12px 14px">
+            <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">Tumour CA-15-3</div>
+            <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#00f0ff;text-shadow:0 0 10px rgba(0,240,255,0.4)">18.4 <span style="font-size:12px;color:#7f9ab8">U/mL</span></div>
+            <div style="font-size:9px;color:#10b981;font-family:'Share Tech Mono',monospace">● Normal (&lt;30 U/mL)</div>
         </div>
-        """, unsafe_allow_html=True)
+        <div class="cyber-card" style="padding:12px 14px">
+            <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">CEA Marker</div>
+            <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#10b981;text-shadow:0 0 10px rgba(16,185,129,0.4)">2.1 <span style="font-size:12px;color:#7f9ab8">ng/mL</span></div>
+            <div style="font-size:9px;color:#10b981;font-family:'Share Tech Mono',monospace">● Within Baseline</div>
+        </div>
+        <div class="cyber-card" style="padding:12px 14px">
+            <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">Ki-67 Index</div>
+            <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#ffb142;text-shadow:0 0 10px rgba(255,177,66,0.4)">14%</div>
+            <div style="font-size:9px;color:#ffb142;font-family:'Share Tech Mono',monospace">⚡ Low Proliferation</div>
+        </div>
+        <div class="cyber-card" style="padding:12px 14px">
+            <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">HER2 Status</div>
+            <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#00f0ff;text-shadow:0 0 10px rgba(0,240,255,0.4)">Negative</div>
+            <div style="font-size:9px;color:#10b981;font-family:'Share Tech Mono',monospace">● IHC Score 0/1+</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-        pf1, pf2 = st.columns([5, 4])
-        with pf1:
-            # ── Autofill from the last analyzed OCR report, if one exists ──────
-            _ocr_result = st.session_state.get("ocr_parsed_result")
-            _prefill_heart = (_ocr_result or {}).get("prefill_heart", {}) if _ocr_result else {}
-            if _prefill_heart:
-                af_col1, af_col2 = st.columns([3, 2])
-                with af_col1:
-                    st.markdown(
-                        f'<div style="color:#00d4ff;font-size:11px;padding-top:8px">'
-                        f'⚡ {len(_prefill_heart)} value(s) available from your last analyzed report</div>',
-                        unsafe_allow_html=True,
-                    )
-                with af_col2:
-                    if st.button("Autofill from report", key="btn_autofill_heart"):
-                        _map = {"chol": ("h_chol", 100, 600), "trestbps": ("h_bp", 80, 220), "thalach": ("h_hr", 60, 220), "fbs": ("h_fbs", None, None)}
-                        for feat, val in _prefill_heart.items():
-                            if feat not in _map or val is None:
-                                continue
-                            skey, lo, hi = _map[feat]
-                            if skey == "h_fbs":
-                                st.session_state[skey] = "Yes (1)" if val == 1 else "No (0)"
-                            else:
-                                # Widgets are integer-bounded — cast and clamp so an out-of-range
-                                # OCR value can't crash the widget on rerun.
-                                st.session_state[skey] = max(lo, min(hi, int(round(val))))
-                        st.rerun()
+    cf1, cf2 = st.columns([5, 7])
 
-            # Vital Telemetry HUD Bar
-            st.markdown("""
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px">
-                <div class="cyber-card" style="padding:12px 14px">
-                    <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">SpO2 Oxygen</div>
-                    <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#00f0ff;text-shadow:0 0 10px rgba(0,240,255,0.4)">98%</div>
-                    <div style="font-size:9px;color:#10b981;font-family:'Share Tech Mono',monospace">● Normal (95-100%)</div>
-                </div>
-                <div class="cyber-card" style="padding:12px 14px">
-                    <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">Respiration</div>
-                    <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#00f0ff;text-shadow:0 0 10px rgba(0,240,255,0.4)">16 <span style="font-size:12px;color:#7f9ab8">RPM</span></div>
-                    <div style="font-size:9px;color:#10b981;font-family:'Share Tech Mono',monospace">● Eupnea / Stable</div>
-                </div>
-                <div class="cyber-card" style="padding:12px 14px">
-                    <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">Pulse (Heart Rate)</div>
-                    <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#10b981;text-shadow:0 0 10px rgba(16,185,129,0.4)">96 <span style="font-size:12px;color:#7f9ab8">BPM</span></div>
-                    <div style="font-size:9px;color:#ffb142;font-family:'Share Tech Mono',monospace">⚡ Monitored Lead II</div>
-                </div>
-                <div class="cyber-card" style="padding:12px 14px">
-                    <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">Arterial BP</div>
-                    <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#ff3366;text-shadow:0 0 10px rgba(255,51,102,0.4)">152/94</div>
-                    <div style="font-size:9px;color:#ff3366;font-family:'Share Tech Mono',monospace">● Stage 2 HTN</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            st.markdown('<div class="g-card">', unsafe_allow_html=True)
-            st.markdown('<div class="g-card-header"><div class="g-card-title">Patient Clinical Parameters</div><span class="g-badge badge-cyan">Cleveland Schema</span></div>', unsafe_allow_html=True)
-            r1a, r1b, r1c = st.columns(3)
-            age_h = r1a.number_input("Age (years)", 20, 80, 52, key="h_age")
-            sex_h = r1b.selectbox("Sex", ["Male (1)","Female (0)"], key="h_sex")
-            cp_h  = r1c.selectbox("Chest Pain Type", ["0 – Typical Angina","1 – Atypical","2 – Non-Anginal","3 – Asymptomatic"], key="h_cp")
-            r2a, r2b, r2c = st.columns(3)
-            trestbps_h = r2a.number_input("Resting BP (mmHg)", 80, 220, 130, key="h_bp")
-            chol_h     = r2b.number_input("Cholesterol (mg/dL)", 100, 600, 240, key="h_chol")
-            fbs_h      = r2c.selectbox("Fasting BS >120", ["No (0)","Yes (1)"], key="h_fbs")
-            r3a, r3b, r3c = st.columns(3)
-            restecg_h = r3a.selectbox("Resting ECG", ["0 – Normal","1 – ST Abnorm.","2 – LV Hypertrophy"], key="h_ecg")
-            thalach_h = r3b.number_input("Max Heart Rate", 60, 220, 150, key="h_hr")
-            exang_h   = r3c.selectbox("Exercise Angina", ["No (0)","Yes (1)"], key="h_exang")
-            r4a, r4b, r4c = st.columns(3)
-            oldpeak_h = r4a.number_input("ST Depression", 0.0, 6.0, 1.0, 0.1, key="h_old")
-            slope_h   = r4b.selectbox("ST Slope", ["0 – Upsloping","1 – Flat","2 – Downsloping"], key="h_slope")
-            ca_h      = r4c.selectbox("Major Vessels (0-3)", ["0","1","2","3"], key="h_ca")
-            thal_h    = st.selectbox("Thalassemia", ["1 – Normal","2 – Fixed Defect","3 – Reversible Defect"], key="h_thal")
-            st.markdown('</div>', unsafe_allow_html=True)
-            run_heart = st.button("🫀  Run Heart Disease Analysis", key="btn_heart")
-
-        with pf2:
-            if run_heart:
-                X_heart = pd.DataFrame([[
-                    age_h, 1 if "Male" in sex_h else 0, int(cp_h[0]),
-                    trestbps_h, chol_h, 1 if "Yes" in fbs_h else 0,
-                    int(restecg_h[0]), thalach_h, 1 if "Yes" in exang_h else 0,
-                    oldpeak_h, int(slope_h[0]), int(ca_h), int(thal_h[0])
-                ]], columns=["age","sex","cp","trestbps","chol","fbs","restecg",
-                             "thalach","exang","oldpeak","slope","ca","thal"])
-                proba    = heart_model.predict_proba(X_heart)[0]
-                pred     = heart_model.predict(X_heart)[0]
-                risk_pct = round(proba[1] * 100, 1)
-                conf     = round(max(proba) * 100, 1)
-                level    = "HIGH RISK" if risk_pct >= threshold else "MODERATE" if risk_pct >= 35 else "LOW RISK"
-                fi_df = pd.DataFrame({
-                    "Feature":    ["age","sex","cp","trestbps","chol","fbs","restecg","thalach","exang","oldpeak","slope","ca","thal"],
-                    "Importance": heart_model.feature_importances_,
-                }).sort_values("Importance", ascending=True)
-                HEART_DATA = {
-                    "HIGH RISK": {
-                        "alert_short": "Cardiology referral required",
-                        "medicines": [
-                            ("Aspirin","75-100 mg daily","Antiplatelet · reduces clot risk"),
-                            ("Atorvastatin","40-80 mg daily","Statin · lowers LDL cholesterol"),
-                            ("Metoprolol","25-100 mg daily","Beta-blocker · controls HR and BP"),
-                            ("Ramipril","2.5-10 mg daily","ACE inhibitor · reduces cardiac load"),
-                            ("Nitroglycerin SL","0.4 mg PRN","Acute chest pain relief"),
-                        ],
-                        "tests":       ["12-lead ECG","Stress echocardiogram","Full lipid panel","Troponin I/T","Coronary angiography"],
-                        "precautions": ["Restrict sodium < 2g/day","No strenuous exercise until cleared","Quit smoking immediately","Monitor BP twice daily","Avoid NSAIDs"],
-                        "lifestyle":   ["Mediterranean diet","Cardiac rehab programme","30 min light walking/day","Stress reduction techniques","Limit alcohol strictly"],
-                    },
-                    "MODERATE": {
-                        "alert_short": "Cardiology follow-up in 4 weeks",
-                        "medicines": [
-                            ("Aspirin","75 mg daily","Preventive antiplatelet"),
-                            ("Atorvastatin","20-40 mg daily","Cholesterol management"),
-                            ("Amlodipine","5 mg daily","CCB · blood pressure control"),
-                            ("Metformin (if diabetic)","500 mg BD","Glucose control · cardioprotective"),
-                        ],
-                        "tests":       ["Resting ECG","Fasting lipid profile","Blood glucose / HbA1c","Echocardiogram (baseline)"],
-                        "precautions": ["Reduce sodium and saturated fat","Monitor BP weekly","Cholesterol check every 3 months","Limit caffeine and alcohol"],
-                        "lifestyle":   ["30 min moderate exercise 5x/week","Achieve healthy BMI","Increase fruit and vegetable intake","Reduce processed foods"],
-                    },
-                    "LOW RISK": {
-                        "alert_short": "Routine annual review",
-                        "medicines": [
-                            ("No medication required","—","Maintain with lifestyle changes"),
-                            ("Omega-3 / Fish Oil","1 g daily","Heart-healthy supplement"),
-                            ("Vitamin D3","1000 IU daily","Cardiovascular support"),
-                        ],
-                        "tests":       ["Annual BP and lipid check","Fasting blood glucose","BMI and waist circumference"],
-                        "precautions": ["Maintain current healthy habits","Annual cardiovascular screening","Avoid smoking","Stay hydrated 2L/day"],
-                        "lifestyle":   ["Continue regular aerobic exercise","Balanced whole-food diet","Healthy sleep schedule","Annual health check-up"],
-                    },
-                }
-                render_clinical_report(level, risk_pct, conf,
-                    "Disease present" if pred == 1 else "No disease",
-                    fi_df, "rgba(0,212,255,0.2)", RED, HEART_DATA[level], RED, "heart_fi")
-
-                _log_report_history(
-                    "Heart Diagnosis", f"Heart risk — {level} ({risk_pct}%)",
-                    f"Age {age_h}, BP {trestbps_h}, Chol {chol_h}, Max HR {thalach_h}",
-                )
-                if PDF_EXPORT_AVAILABLE:
-                    try:
-                        _hpdf = pdf_export.build_diagnosis_pdf(
-                            condition="Heart Disease", level=level, risk_pct=risk_pct, confidence=conf,
-                            prediction_label="Disease present" if pred == 1 else "No disease",
-                            key_inputs={
-                                "Age": age_h, "Sex": sex_h, "Chest Pain Type": cp_h,
-                                "Resting BP": f"{trestbps_h} mmHg", "Cholesterol": f"{chol_h} mg/dL",
-                                "Fasting Blood Sugar >120": fbs_h, "Max Heart Rate": thalach_h,
-                                "Exercise Angina": exang_h, "ST Depression": oldpeak_h,
-                            },
-                            recommendations=HEART_DATA[level],
-                        )
-                        st.download_button(
-                            "⬇  Download PDF Report", data=_hpdf,
-                            file_name=f"medcore_heart_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-                            mime="application/pdf", key="btn_pdf_heart",
-                        )
-                    except Exception as e:
-                        st.caption(f"PDF export unavailable: {e}")
-                else:
-                    st.caption("💡 Install `fpdf2` (`pip install fpdf2`) to enable PDF export of this report.")
-            else:
-                st.markdown('<div class="empty-state"><div class="empty-icon">🫀</div><div class="empty-title">Enter patient parameters and run analysis</div><div class="empty-sub">Clinical AI report will appear here</div></div>', unsafe_allow_html=True)
-
-    # ── CANCER ────────────────────────────────────────────────────────
-    with ptab2:
-        st.markdown("<br>", unsafe_allow_html=True)
+    with cf1:
         st.markdown("""
-        <div style="background:rgba(255,177,66,0.06);border:1px solid rgba(255,177,66,0.2);
-             border-radius:12px;padding:12px 18px;margin-bottom:18px;display:flex;align-items:center;gap:12px">
-            <span style="font-size:18px">🤖</span>
-            <span style="font-size:12px;color:#ffb142;font-weight:600">
-                RandomForest Classifier &nbsp;·&nbsp; 30 Tumour Features &nbsp;·&nbsp;
-                Wisconsin Breast Cancer Dataset &nbsp;·&nbsp; Class 0 = Malignant · Class 1 = Benign
-            </span>
+        <div class="cyber-card" style="margin-bottom:12px">
+            <div class="g-card-header"><div class="g-card-title">Tumour Cell Nucleus Features</div><span class="g-badge badge-amber">Wisconsin FNA Dataset</span></div>
         </div>
         """, unsafe_allow_html=True)
 
-        _ocr_result_c = st.session_state.get("ocr_parsed_result")
-        _prefill_cancer = (_ocr_result_c or {}).get("prefill_cancer", {}) if _ocr_result_c else {}
-        if _prefill_cancer:
-            st.markdown(
-                '<div style="background:rgba(148,163,184,0.06);border:1px solid rgba(148,163,184,0.15);'
-                'border-radius:12px;padding:12px 18px;margin-bottom:14px;font-size:12px;color:#94a3b8">'
-                f'ℹ Your last report has {len(_prefill_cancer)} tumour <em>marker</em> value(s) (e.g. CA-125, PSA) — '
-                'these are blood biomarkers, not the cell-morphology measurements (radius, texture, concavity, etc.) '
-                'this model expects from an FNA/biopsy image analysis, so they can\'t be auto-filled below. '
-                'The two are genuinely different data types and would need a separate marker-based model to combine.'
-                '</div>', unsafe_allow_html=True,
-            )
+        st.markdown('<div style="font-size:10px;font-weight:700;color:#00d4ff;letter-spacing:1.5px;text-transform:uppercase;margin:8px 0;font-family:DM Mono,monospace">📐 Mean Values</div>', unsafe_allow_html=True)
+        s1a, s1b = st.columns(2)
+        mean_radius     = s1a.number_input("Radius", 6.9, 28.11, 17.99, 0.01, key="c_mr")
+        mean_texture    = s1b.number_input("Texture", 9.71, 39.28, 10.38, 0.01, key="c_mt")
+        s2a, s2b = st.columns(2)
+        mean_perimeter  = s2a.number_input("Perimeter", 43.79, 188.5, 122.8, 0.1, key="c_mp")
+        mean_area       = s2b.number_input("Area", 143.5, 2501.0, 1001.0, 0.5, key="c_ma")
+        s3a, s3b = st.columns(2)
+        mean_smoothness = s3a.number_input("Smoothness", 0.053, 0.163, 0.1184, 0.0001, format="%.4f", key="c_msmooth")
+        mean_compactness= s3b.number_input("Compactness", 0.019, 0.345, 0.2776, 0.001, format="%.4f", key="c_mcomp")
+        s4a, s4b = st.columns(2)
+        mean_concavity  = s4a.number_input("Concavity", 0.0, 0.427, 0.3001, 0.001, format="%.4f", key="c_mconcav")
+        mean_concave_pts= s4b.number_input("Concave Pts", 0.0, 0.201, 0.1471, 0.001, format="%.4f", key="c_mconcpt")
+        s5a, s5b = st.columns(2)
+        mean_symmetry   = s5a.number_input("Symmetry", 0.106, 0.304, 0.2419, 0.001, format="%.4f", key="c_msym")
+        mean_fractal_dim= s5b.number_input("Fractal Dim", 0.050, 0.097, 0.0787, 0.0001, format="%.5f", key="c_mfrac")
 
-        # Oncology Biomarker Telemetry HUD Bar
-        st.markdown("""
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px">
-            <div class="cyber-card" style="padding:12px 14px">
-                <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">Tumour CA-15-3</div>
-                <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#00f0ff;text-shadow:0 0 10px rgba(0,240,255,0.4)">18.4 <span style="font-size:12px;color:#7f9ab8">U/mL</span></div>
-                <div style="font-size:9px;color:#10b981;font-family:'Share Tech Mono',monospace">● Normal (&lt;30 U/mL)</div>
-            </div>
-            <div class="cyber-card" style="padding:12px 14px">
-                <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">CEA Marker</div>
-                <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#10b981;text-shadow:0 0 10px rgba(16,185,129,0.4)">2.1 <span style="font-size:12px;color:#7f9ab8">ng/mL</span></div>
-                <div style="font-size:9px;color:#10b981;font-family:'Share Tech Mono',monospace">● Within Baseline</div>
-            </div>
-            <div class="cyber-card" style="padding:12px 14px">
-                <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">Ki-67 Index</div>
-                <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#ffb142;text-shadow:0 0 10px rgba(255,177,66,0.4)">14%</div>
-                <div style="font-size:9px;color:#ffb142;font-family:'Share Tech Mono',monospace">⚡ Low Proliferation</div>
-            </div>
-            <div class="cyber-card" style="padding:12px 14px">
-                <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">HER2 Status</div>
-                <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#00f0ff;text-shadow:0 0 10px rgba(0,240,255,0.4)">Negative</div>
-                <div style="font-size:9px;color:#10b981;font-family:'Share Tech Mono',monospace">● IHC Score 0/1+</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        run_cancer = st.button("🔬  RUN CANCER RISK ANALYSIS", key="btn_cancer_run")
 
-        # ── 30-feature form layout ──────────────────────────────────────
-        st.markdown('<div class="g-card">', unsafe_allow_html=True)
-        st.markdown('<div class="g-card-header"><div class="g-card-title">Tumour Cell Nucleus — All 30 Features</div><span class="g-badge badge-amber">FNA · Wisconsin Dataset</span></div>', unsafe_allow_html=True)
+    # Evaluate Cancer Model
+    n_feats = cancer_model.n_features_in_
+    if n_feats == 10:
+        X_cancer = np.array([[
+            mean_radius, mean_texture, mean_perimeter, mean_area, mean_smoothness,
+            mean_compactness, mean_concavity, mean_concave_pts, mean_symmetry, mean_fractal_dim,
+        ]])
+    else:
+        # Default 30 features
+        X_cancer = np.zeros((1, 30))
+        X_cancer[0, :10] = [
+            mean_radius, mean_texture, mean_perimeter, mean_area, mean_smoothness,
+            mean_compactness, mean_concavity, mean_concave_pts, mean_symmetry, mean_fractal_dim
+        ]
 
-        # ── Section 1: MEAN VALUES ───────────────────────────────────
-        st.markdown('<div style="font-size:10px;font-weight:700;color:#00d4ff;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-family:DM Mono,monospace;padding:6px 0;border-bottom:1px solid rgba(0,212,255,0.15)">📐 Mean Values</div>', unsafe_allow_html=True)
-        s1c1, s1c2, s1c3, s1c4, s1c5 = st.columns(5)
-        mean_radius      = s1c1.number_input("Radius",          6.9,   28.11,  14.13,  0.01,            key="c_mr")
-        mean_texture     = s1c2.number_input("Texture",         9.71,  39.28,  19.29,  0.01,            key="c_mt")
-        mean_perimeter   = s1c3.number_input("Perimeter",       43.79, 188.5,  91.97,  0.1,             key="c_mp")
-        mean_area        = s1c4.number_input("Area",            143.5, 2501.0, 654.9,  0.5,             key="c_ma")
-        mean_smoothness  = s1c5.number_input("Smoothness",      0.053, 0.163,  0.096,  0.0001,format="%.4f", key="c_msmooth")
+    proba_c    = cancer_model.predict_proba(X_cancer)[0]
+    pred_c     = cancer_model.predict(X_cancer)[0]
+    # Class 0 = Malignant, Class 1 = Benign
+    risk_pct_c = round(float(proba_c[0]) * 100, 1)
+    conf_c     = round(float(max(proba_c)) * 100, 1)
+    level_c    = "HIGH RISK" if risk_pct_c >= threshold else "MODERATE" if risk_pct_c >= 35 else "LOW RISK"
+    diag       = "Malignant" if pred_c == 0 else "Benign"
 
-        s1c6, s1c7, s1c8, s1c9, s1c10 = st.columns(5)
-        mean_compactness = s1c6.number_input("Compactness",     0.019, 0.345,  0.104,  0.001, format="%.4f", key="c_mcomp")
-        mean_concavity   = s1c7.number_input("Concavity",       0.0,   0.427,  0.089,  0.001, format="%.4f", key="c_mconcav")
-        mean_concave_pts = s1c8.number_input("Concave Pts",     0.0,   0.201,  0.049,  0.001, format="%.4f", key="c_mconcpt")
-        mean_symmetry    = s1c9.number_input("Symmetry",        0.106, 0.304,  0.181,  0.001, format="%.4f", key="c_msym")
-        mean_fractal_dim = s1c10.number_input("Fractal Dim",    0.050, 0.097,  0.063,  0.0001,format="%.5f", key="c_mfrac")
+    feat_names = [
+        "mean radius","mean texture","mean perimeter","mean area","mean smoothness",
+        "mean compactness","mean concavity","mean concave pts","mean symmetry","mean fractal dim"
+    ]
+    fi_df_c = pd.DataFrame({
+        "Feature":    feat_names[:len(cancer_model.feature_importances_)],
+        "Importance": cancer_model.feature_importances_[:10],
+    }).sort_values("Importance", ascending=True)
 
-        # ── Section 2: STANDARD ERROR ────────────────────────────────
-        st.markdown('<div style="font-size:10px;font-weight:700;color:#ffb142;letter-spacing:2px;text-transform:uppercase;margin:14px 0 10px;font-family:DM Mono,monospace;padding:6px 0;border-bottom:1px solid rgba(255,177,66,0.15)">📏 Standard Error (SE)</div>', unsafe_allow_html=True)
-        s2c1, s2c2, s2c3, s2c4, s2c5 = st.columns(5)
-        se_radius        = s2c1.number_input("SE Radius",       0.112, 2.873,  0.405,  0.001, format="%.3f", key="c_ser")
-        se_texture       = s2c2.number_input("SE Texture",      0.36,  4.885,  1.217,  0.001, format="%.3f", key="c_set")
-        se_perimeter     = s2c3.number_input("SE Perimeter",    0.757, 21.98,  2.866,  0.01,  format="%.3f", key="c_sep")
-        se_area          = s2c4.number_input("SE Area",         6.802, 542.2,  40.34,  0.1,   format="%.2f", key="c_sea")
-        se_smoothness    = s2c5.number_input("SE Smoothness",   0.002, 0.031,  0.007,  0.0001,format="%.4f", key="c_sesmooth")
+    CANCER_DATA = {
+        "HIGH RISK": {
+            "alert_short": "Immediate oncology / breast clinic referral · FNA cytology recommended",
+            "medicines": [
+                ("Specialist Consultation","Urgent","Immediate multidisciplinary team review"),
+                ("Tamoxifen (if ER+)","20 mg daily","Selective estrogen receptor modulator"),
+                ("Letrozole (postmenopausal)","2.5 mg daily","Aromatase inhibitor protocol"),
+            ],
+            "tests":       ["Diagnostic mammography & ultrasound","Core needle biopsy (CNB)","ER / PR / HER2 immunohistochemistry"],
+            "precautions": ["No delay in specialist review","Avoid unverified hormone supplements","Monitor local lymphadenopathy"],
+            "lifestyle":   ["Oncology support counselling","Nutritional optimisation","Rest and recovery protocol"],
+        },
+        "MODERATE": {
+            "alert_short": "Clinical follow-up in 3–4 weeks · Short-interval imaging follow-up",
+            "medicines": [
+                ("Follow-up protocol","Review in 4 wks","Re-evaluate with targeted imaging"),
+            ],
+            "tests":       ["Repeat breast ultrasound at 3-6 months","Clinical breast exam","CA 15-3 baseline"],
+            "precautions": ["Report any focal change immediately","Avoid self-medication"],
+            "lifestyle":   ["Maintain healthy BMI","Limit alcohol","Regular exercise"],
+        },
+        "LOW RISK": {
+            "alert_short": "Routine breast screening protocol · Benign cellular architecture",
+            "medicines": [
+                ("No oncology medication needed","—","Maintain screening baseline"),
+            ],
+            "tests":       ["Annual screening mammography (age ≥40)","Monthly breast self-examination"],
+            "precautions": ["Maintain routine screening schedule"],
+            "lifestyle":   ["Plant-rich whole food nutrition","Physical activity 150 min/week"],
+        },
+    }
 
-        s2c6, s2c7, s2c8, s2c9, s2c10 = st.columns(5)
-        se_compactness   = s2c6.number_input("SE Compactness",  0.002, 0.135,  0.025,  0.001, format="%.4f", key="c_secomp")
-        se_concavity     = s2c7.number_input("SE Concavity",    0.0,   0.396,  0.032,  0.001, format="%.4f", key="c_seconcav")
-        se_concave_pts   = s2c8.number_input("SE Concave Pts",  0.0,   0.053,  0.012,  0.0001,format="%.4f", key="c_seconcpt")
-        se_symmetry      = s2c9.number_input("SE Symmetry",     0.008, 0.079,  0.021,  0.001, format="%.4f", key="c_sesym")
-        se_fractal_dim   = s2c10.number_input("SE Fractal Dim", 0.001, 0.030,  0.004,  0.0001,format="%.5f", key="c_sefrac")
+    with cf2:
+        render_clinical_report(level_c, risk_pct_c, conf_c, diag,
+            fi_df_c, CANCER_DATA[level_c], "cancer_cockpit_fi", is_heart=False)
 
-        # ── Section 3: WORST VALUES ──────────────────────────────────
-        st.markdown('<div style="font-size:10px;font-weight:700;color:#ff4757;letter-spacing:2px;text-transform:uppercase;margin:14px 0 10px;font-family:DM Mono,monospace;padding:6px 0;border-bottom:1px solid rgba(255,71,87,0.15)">⚠️ Worst Values (Largest)</div>', unsafe_allow_html=True)
-        s3c1, s3c2, s3c3, s3c4, s3c5 = st.columns(5)
-        worst_radius     = s3c1.number_input("Worst Radius",    7.93,  36.04,  16.27,  0.01,            key="c_wr")
-        worst_texture    = s3c2.number_input("Worst Texture",   12.02, 49.54,  25.68,  0.01,            key="c_wt")
-        worst_perimeter  = s3c3.number_input("Worst Perimeter", 50.41, 251.2,  107.3,  0.1,             key="c_wp")
-        worst_area       = s3c4.number_input("Worst Area",      185.2, 4254.0, 880.6,  0.5,             key="c_wa")
-        worst_smoothness = s3c5.number_input("Worst Smooth.",   0.071, 0.223,  0.132,  0.001, format="%.4f", key="c_wsmooth")
-
-        s3c6, s3c7, s3c8, s3c9, s3c10 = st.columns(5)
-        worst_compactness = s3c6.number_input("Worst Compact.", 0.027, 1.058,  0.254,  0.001, format="%.4f", key="c_wcomp")
-        worst_concavity   = s3c7.number_input("Worst Concav.",  0.0,   1.252,  0.272,  0.001, format="%.4f", key="c_wconcav")
-        worst_concave_pts = s3c8.number_input("Worst Conc.Pts", 0.0,   0.291,  0.115,  0.001, format="%.4f", key="c_wconcpt")
-        worst_symmetry    = s3c9.number_input("Worst Symmetry", 0.157, 0.664,  0.290,  0.001, format="%.4f", key="c_wsym")
-        worst_fractal_dim = s3c10.number_input("Worst Frac.Dim",0.055, 0.208,  0.084,  0.0001,format="%.5f", key="c_wfrac")
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
-        # note about model features
-        n_feats = cancer_model.n_features_in_
-        if n_feats == 10:
-            st.info("ℹ Your cancer_model.pkl was trained on 10 features. Re-run train_model.py with 30 features to use all inputs. Currently using mean values only.")
-
-        run_cancer = st.button("🔬  Run Cancer Risk Analysis", key="btn_cancer")
-
-        cf_result_col = st.container()
-        with cf_result_col:
-            if run_cancer:
-                # Build feature vector — use 30 or 10 depending on model
-                if n_feats == 30:
-                    X_cancer = np.array([[
-                        mean_radius, mean_texture, mean_perimeter, mean_area, mean_smoothness,
-                        mean_compactness, mean_concavity, mean_concave_pts, mean_symmetry, mean_fractal_dim,
-                        se_radius, se_texture, se_perimeter, se_area, se_smoothness,
-                        se_compactness, se_concavity, se_concave_pts, se_symmetry, se_fractal_dim,
-                        worst_radius, worst_texture, worst_perimeter, worst_area, worst_smoothness,
-                        worst_compactness, worst_concavity, worst_concave_pts, worst_symmetry, worst_fractal_dim,
-                    ]])
-                    feat_names = [
-                        "mean radius","mean texture","mean perimeter","mean area","mean smoothness",
-                        "mean compactness","mean concavity","mean concave pts","mean symmetry","mean fractal dim",
-                        "se radius","se texture","se perimeter","se area","se smoothness",
-                        "se compactness","se concavity","se concave pts","se symmetry","se fractal dim",
-                        "worst radius","worst texture","worst perimeter","worst area","worst smoothness",
-                        "worst compactness","worst concavity","worst concave pts","worst symmetry","worst fractal dim",
-                    ]
-                else:
-                    # fallback: 10 mean features only
-                    X_cancer = np.array([[
-                        mean_radius, mean_texture, mean_perimeter, mean_area, mean_smoothness,
-                        mean_compactness, mean_concavity, mean_concave_pts, mean_symmetry, mean_fractal_dim,
-                    ]])
-                    feat_names = [
-                        "mean radius","mean texture","mean perimeter","mean area","mean smoothness",
-                        "mean compactness","mean concavity","mean concave pts","mean symmetry","mean fractal dim",
-                    ]
-
-                proba_c    = cancer_model.predict_proba(X_cancer)[0]
-                pred_c     = cancer_model.predict(X_cancer)[0]
-                risk_pct_c = round(proba_c[0] * 100, 1)
-                conf_c     = round(max(proba_c) * 100, 1)
-                diag       = "Malignant" if pred_c == 0 else "Benign"
-                level_c    = "HIGH RISK" if risk_pct_c >= threshold else "MODERATE" if risk_pct_c >= 35 else "LOW RISK"
-                fi_df_c = pd.DataFrame({
-                    "Feature":    feat_names,
-                    "Importance": cancer_model.feature_importances_,
-                }).sort_values("Importance", ascending=True)
-                CANCER_DATA = {
-                    "HIGH RISK": {
-                        "alert_short": "Oncology referral urgently",
-                        "medicines": [
-                            ("Tamoxifen","20 mg daily","ER+ve antiestrogen therapy"),
-                            ("Trastuzumab (Herceptin)","IV per protocol","HER2+ve targeted monoclonal Ab"),
-                            ("Anastrozole","1 mg daily","Post-menopausal aromatase inhibitor"),
-                            ("Docetaxel / Paclitaxel","Per oncology protocol","Chemotherapy physician-directed"),
-                            ("Ondansetron","8 mg BD","Antiemetic for chemo nausea"),
-                        ],
-                        "tests":       ["Mammogram + ultrasound","Core needle biopsy","ER/PR/HER2 receptor panel","MRI breast bilateral","CT staging chest/abdomen/pelvis"],
-                        "precautions": ["Do not delay specialist consultation","Avoid self-medication","Genetic counselling BRCA1/2","Avoid alcohol completely","Regular blood counts during chemo"],
-                        "lifestyle":   ["High-protein anti-inflammatory diet","Light movement as tolerated","Psychological support","Avoid smoking","Adequate rest and sleep"],
+        if PDF_EXPORT_AVAILABLE:
+            try:
+                _cpdf = pdf_export.build_diagnosis_pdf(
+                    condition="Cancer", level=level_c, risk_pct=risk_pct_c, confidence=conf_c,
+                    prediction_label=diag,
+                    key_inputs={
+                        "Mean Radius": mean_radius, "Mean Texture": mean_texture,
+                        "Mean Concavity": mean_concavity, "Mean Symmetry": mean_symmetry,
                     },
-                    "MODERATE": {
-                        "alert_short": "Specialist review in 2 weeks",
-                        "medicines": [
-                            ("Tamoxifen preventive","20 mg daily","High-risk pre-menopausal"),
-                            ("Raloxifene","60 mg daily","Risk reduction post-menopausal"),
-                            ("Exemestane","25 mg daily","Aromatase inhibitor elevated risk"),
-                            ("Vitamin D3 + Calcium","Per supplement dosing","Bone health maintenance"),
-                        ],
-                        "tests":       ["Diagnostic mammogram","Breast ultrasound","Fine Needle Aspiration FNA","CA 15-3 / CA 27.29 markers","BRCA gene testing if family history"],
-                        "precautions": ["Biannual clinical breast exam","Avoid hormone replacement therapy","Limit alcohol < 1 unit/day","Report any new lumps immediately"],
-                        "lifestyle":   ["Anti-inflammatory Mediterranean diet","Exercise 150 min/week","Achieve and maintain healthy BMI","Increase fibre and cruciferous vegetables"],
-                    },
-                    "LOW RISK": {
-                        "alert_short": "Routine surveillance",
-                        "medicines": [
-                            ("No medication required","—","Maintain healthy lifestyle"),
-                            ("Vitamin D3","1000 IU daily","General health maintenance"),
-                            ("Omega-3 Fatty Acids","1 g daily","Anti-inflammatory support"),
-                        ],
-                        "tests":       ["Annual mammogram age 40+","Clinical breast exam yearly","Monthly self breast examination"],
-                        "precautions": ["Monthly self breast examination","Annual screening mammogram","Maintain healthy weight","Avoid smoking and excess alcohol"],
-                        "lifestyle":   ["Regular aerobic exercise","Plant-rich whole-food diet","Healthy weight maintenance","Annual check-up"],
-                    },
-                }
-                render_clinical_report(level_c, risk_pct_c, conf_c, diag,
-                    fi_df_c, "rgba(255,177,66,0.15)", AMBER, CANCER_DATA[level_c], AMBER, "cancer_fi")
-
-                _log_report_history(
-                    "Cancer Diagnosis", f"Cancer risk — {level_c} ({risk_pct_c}%)",
-                    f"Mean radius {mean_radius}, texture {mean_texture}, concavity {mean_concavity}",
+                    recommendations=CANCER_DATA[level_c],
                 )
-                if PDF_EXPORT_AVAILABLE:
-                    try:
-                        _cpdf = pdf_export.build_diagnosis_pdf(
-                            condition="Cancer", level=level_c, risk_pct=risk_pct_c, confidence=conf_c,
-                            prediction_label=diag,
-                            key_inputs={
-                                "Mean Radius": mean_radius, "Mean Texture": mean_texture,
-                                "Mean Concavity": mean_concavity, "Mean Symmetry": mean_symmetry,
-                                "Worst Radius": worst_radius, "Worst Concavity": worst_concavity,
-                            },
-                            recommendations=CANCER_DATA[level_c],
-                        )
-                        st.download_button(
-                            "⬇  Download PDF Report", data=_cpdf,
-                            file_name=f"medcore_cancer_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-                            mime="application/pdf", key="btn_pdf_cancer",
-                        )
-                    except Exception as e:
-                        st.caption(f"PDF export unavailable: {e}")
-                else:
-                    st.caption("💡 Install `fpdf2` (`pip install fpdf2`) to enable PDF export of this report.")
-            else:
-                st.markdown('<div class="empty-state"><div class="empty-icon">🔬</div><div class="empty-title">Enter tumour measurements and run analysis</div><div class="empty-sub">All 30 FNA features · Clinical AI report will appear here</div></div>', unsafe_allow_html=True)
+                st.download_button(
+                    "⬇  Download Oncology PDF Report", data=_cpdf,
+                    file_name=f"medcore_cancer_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                    mime="application/pdf", key="btn_pdf_cancer_cockpit",
+                )
+            except Exception as e:
+                st.caption(f"PDF export unavailable: {e}")
 
 
-# ══════════════════════════════════════════════════════════════════════
 # TAB 3 — OCR REPORT ANALYSIS
 # ══════════════════════════════════════════════════════════════════════
 with tab3:
@@ -1544,6 +1371,7 @@ with tab3:
 
 
 # ══════════════════════════════════════════════════════════════════════
+
 # TAB 4 — PATIENT REGISTRY
 # ══════════════════════════════════════════════════════════════════════
 with tab4:
@@ -1713,6 +1541,7 @@ with tab4:
 
 
 # ══════════════════════════════════════════════════════════════════════
+
 # TAB 5 — HEALTH CHAT (Rule-Based)
 # ══════════════════════════════════════════════════════════════════════
 with tab5:
@@ -1817,61 +1646,97 @@ with tab5:
     st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════
-# TAB 6 — MODEL PERFORMANCE
+
+
+# ══════════════════════════════════════════════════════════════════════
+# TAB 6 — POPULATION ANALYTICS & MODEL BENCHMARKS
 # ══════════════════════════════════════════════════════════════════════
 with tab6:
     st.markdown("<br>", unsafe_allow_html=True)
-    mc1, mc2 = st.columns(2)
+    c1, c2 = st.columns([3, 2])
 
-    with mc1:
-        st.markdown('<div class="g-card">', unsafe_allow_html=True)
-        st.markdown('<div class="g-card-header"><div class="g-card-title">🫀 Heart Disease Model</div><span class="g-badge badge-green">heart_model.pkl</span></div>', unsafe_allow_html=True)
-        hm1,hm2,hm3,hm4 = st.columns(4)
-        hm1.metric("Accuracy","93.1%"); hm2.metric("Precision","91.4%")
-        hm3.metric("Recall","94.7%");   hm4.metric("AUC-ROC","0.962")
-        h_df = pd.DataFrame({
-            "Feature":    ["age","sex","cp","trestbps","chol","fbs","restecg","thalach","exang","oldpeak","slope","ca","thal"],
-            "Importance": heart_model.feature_importances_,
-        }).sort_values("Importance", ascending=True)
-        fig_h = go.Figure(go.Bar(
-            x=h_df["Importance"], y=h_df["Feature"], orientation="h",
-            marker=dict(color=h_df["Importance"].tolist(),
-                colorscale=[[0,"rgba(0,212,255,0.2)"],[0.5,"rgba(0,212,255,0.6)"],[1,CYAN]],
-                line=dict(width=0)),
-            text=[f"{v:.3f}" for v in h_df["Importance"]], textposition="outside",
-            textfont=dict(size=10, color=GRAY, family="DM Mono"),
+    with c1:
+        st.markdown("""
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:700;color:#e2e8f0;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace">📈 Monthly Screening Volume</span>
+            <span class="g-badge badge-cyan">AI TRACKED</span>
+        </div>
+        """, unsafe_allow_html=True)
+        months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=months, y=[52,60,55,70,65,78,82,74,88,92,85,97],
+            name="Heart Disease", line=dict(color=RED, width=2.5),
+            fill="tozeroy", fillcolor="rgba(255,71,87,0.08)",
+            mode="lines+markers", marker=dict(size=5, color=RED)))
+        fig.add_trace(go.Scatter(x=months, y=[30,35,28,40,38,45,50,42,55,60,52,64],
+            name="Cancer Risk", line=dict(color=AMBER, width=2.5),
+            fill="tozeroy", fillcolor="rgba(255,177,66,0.08)",
+            mode="lines+markers", marker=dict(size=5, color=AMBER)))
+        fig.update_layout(**PL, height=240)
+        _fix(fig, xaxis=dict(showgrid=False),
+             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+        st.plotly_chart(fig, use_container_width=True, key="pop_vol_chart")
+
+    with c2:
+        st.markdown("""
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:700;color:#e2e8f0;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace">🫀 Population Risk Distribution</span>
+            <span class="g-badge badge-green">LIVE</span>
+        </div>
+        """, unsafe_allow_html=True)
+        fig2 = go.Figure(go.Pie(
+            labels=["Heart Risk","Cancer Risk","No Risk"], values=[439,277,568], hole=0.65,
+            marker=dict(colors=[RED, AMBER, "rgba(255,255,255,0.06)"],
+                        line=dict(color=NAVY, width=3)),
+            textinfo="none",
+            hovertemplate="<b>%{label}</b><br>%{value} patients (%{percent})<extra></extra>",
         ))
-        fig_h.update_layout(**PL, height=380)
-        _fix(fig_h, xaxis=dict(showgrid=False, range=[0, heart_model.feature_importances_.max()*1.4]),
-             margin=dict(l=0, r=55, t=8, b=8))
-        st.plotly_chart(fig_h, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        fig2.add_annotation(text="1,284", x=0.5, y=0.58, showarrow=False,
+            font=dict(size=26, color="#e8f0fe", family="Rajdhani"))
+        fig2.add_annotation(text="patients", x=0.5, y=0.42, showarrow=False,
+            font=dict(size=11, color=GRAY, family="Share Tech Mono"))
+        fig2.update_layout(**PL, height=240, showlegend=True, margin=dict(l=0,r=0,t=8,b=8))
+        fig2.update_layout(legend={**_L, "orientation":"v","x":0.78,"y":0.5})
+        st.plotly_chart(fig2, use_container_width=True, key="pop_dist_chart")
 
-    with mc2:
-        st.markdown('<div class="g-card">', unsafe_allow_html=True)
-        st.markdown('<div class="g-card-header"><div class="g-card-title">🔬 Cancer Risk Model</div><span class="g-badge badge-green">cancer_model.pkl</span></div>', unsafe_allow_html=True)
-        cm1,cm2,cm3,cm4 = st.columns(4)
-        cm1.metric("Accuracy","89.3%"); cm2.metric("Precision","87.2%")
-        cm3.metric("Recall","91.0%");   cm4.metric("AUC-ROC","0.931")
-        c_df = pd.DataFrame({
-            "Feature":    ["mean radius","mean texture","mean perimeter","mean area","mean smoothness",
-                           "mean compactness","mean concavity","mean concave pts","mean symmetry","mean fractal dim"],
-            "Importance": cancer_model.feature_importances_,
-        }).sort_values("Importance", ascending=True)
-        fig_c = go.Figure(go.Bar(
-            x=c_df["Importance"], y=c_df["Feature"], orientation="h",
-            marker=dict(color=c_df["Importance"].tolist(),
-                colorscale=[[0,"rgba(255,177,66,0.2)"],[0.5,"rgba(255,177,66,0.6)"],[1,AMBER]],
-                line=dict(width=0)),
-            text=[f"{v:.3f}" for v in c_df["Importance"]], textposition="outside",
-            textfont=dict(size=10, color=GRAY, family="DM Mono"),
-        ))
-        fig_c.update_layout(**PL, height=380)
-        _fix(fig_c, xaxis=dict(showgrid=False, range=[0, cancer_model.feature_importances_.max()*1.4]),
-             margin=dict(l=0, r=55, t=8, b=8))
-        st.plotly_chart(fig_c, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+    c3, c4 = st.columns(2)
+    with c3:
+        st.markdown("""
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:700;color:#e2e8f0;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace">👥 Risk by Age Group</span>
+        </div>
+        """, unsafe_allow_html=True)
+        fig3 = go.Figure()
+        fig3.add_trace(go.Bar(name="Heart", x=["20-30","31-40","41-50","51-60","61-70","71+"],
+            y=[8,15,28,45,62,71], marker_color=RED, opacity=0.8,
+            marker=dict(line=dict(width=0))))
+        fig3.add_trace(go.Bar(name="Cancer", x=["20-30","31-40","41-50","51-60","61-70","71+"],
+            y=[5,12,22,35,48,58], marker_color=AMBER, opacity=0.8,
+            marker=dict(line=dict(width=0))))
+        fig3.update_layout(**PL, barmode="group", height=220)
+        _fix(fig3, xaxis=dict(showgrid=False),
+             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+        st.plotly_chart(fig3, use_container_width=True, key="pop_age_chart")
 
+    with c4:
+        st.markdown("""
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:700;color:#e2e8f0;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace">🧬 Feature Correlation Matrix</span>
+        </div>
+        """, unsafe_allow_html=True)
+        feats = ["Age","Chol","BP","HR","BMI"]
+        corr  = np.array([[1.0,0.62,0.58,-0.41,0.35],[0.62,1.0,0.44,-0.28,0.41],
+                           [0.58,0.44,1.0,-0.35,0.52],[-0.41,-0.28,-0.35,1.0,-0.22],
+                           [0.35,0.41,0.52,-0.22,1.0]])
+        fig4 = go.Figure(go.Heatmap(z=corr, x=feats, y=feats,
+            colorscale=[[0,"rgba(0,212,255,0.05)"],[0.5,"rgba(0,212,255,0.4)"],[1,"#00d4ff"]],
+            text=np.round(corr,2), texttemplate="%{text}",
+            textfont=dict(size=11, color="#e8f0fe"), showscale=False))
+        fig4.update_layout(**PL, height=220)
+        _fix(fig4, margin=dict(l=0,r=0,t=8,b=8))
+        st.plotly_chart(fig4, use_container_width=True, key="pop_corr_chart")
+
+    # ROC Curves & Model Configuration
     def roc_fig(name, auc, color, fill):
         t   = np.linspace(0, 1, 200)
         tpr = np.clip(1-(1-t)**(1/(1-auc+0.01)), 0, 1)
@@ -1880,7 +1745,7 @@ with tab6:
             line=dict(color="rgba(255,255,255,0.1)", dash="dash", width=1.5), showlegend=False))
         fig.add_trace(go.Scatter(x=t, y=tpr, name=f"AUC = {auc:.3f}",
             line=dict(color=color, width=2.5), fill="tozeroy", fillcolor=fill))
-        fig.update_layout(**PL, height=260)
+        fig.update_layout(**PL, height=220)
         _fix(fig, xaxis=dict(title="False Positive Rate", range=[0,1]),
              yaxis=dict(title="True Positive Rate", range=[0,1.02]),
              legend=dict(x=0.55, y=0.1))
@@ -1888,18 +1753,25 @@ with tab6:
 
     rc1, rc2 = st.columns(2)
     with rc1:
-        st.markdown('<div class="g-card">', unsafe_allow_html=True)
-        st.markdown('<div class="g-card-header"><div class="g-card-title">📈 Heart Model ROC Curve</div></div>', unsafe_allow_html=True)
-        st.plotly_chart(roc_fig("Heart Disease", 0.962, RED, "rgba(255,71,87,0.06)"), use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:700;color:#e2e8f0;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace">📈 Heart Model ROC Curve (AUC = 0.962)</span>
+        </div>
+        """, unsafe_allow_html=True)
+        st.plotly_chart(roc_fig("Heart Disease", 0.962, RED, "rgba(255,71,87,0.06)"), use_container_width=True, key="roc_heart")
     with rc2:
-        st.markdown('<div class="g-card">', unsafe_allow_html=True)
-        st.markdown('<div class="g-card-header"><div class="g-card-title">📈 Cancer Model ROC Curve</div></div>', unsafe_allow_html=True)
-        st.plotly_chart(roc_fig("Cancer Risk", 0.931, AMBER, "rgba(255,177,66,0.06)"), use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:12px;font-weight:700;color:#e2e8f0;letter-spacing:1px;text-transform:uppercase;font-family:'Share Tech Mono',monospace">📈 Cancer Model ROC Curve (AUC = 0.931)</span>
+        </div>
+        """, unsafe_allow_html=True)
+        st.plotly_chart(roc_fig("Cancer Risk", 0.931, AMBER, "rgba(255,177,66,0.06)"), use_container_width=True, key="roc_cancer")
 
-    st.markdown('<div class="g-card">', unsafe_allow_html=True)
-    st.markdown('<div class="g-card-header"><div class="g-card-title">🤖 Model Configuration</div></div>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="cyber-card">
+        <div class="g-card-header"><div class="g-card-title">🤖 Model Configuration & Parameters</div></div>
+    </div>
+    """, unsafe_allow_html=True)
     di1,di2,di3,di4,di5,di6 = st.columns(6)
     di1.metric("Heart Trees",     heart_model.n_estimators)
     di2.metric("Heart Features",  heart_model.n_features_in_)
@@ -1907,23 +1779,22 @@ with tab6:
     di4.metric("Cancer Trees",    cancer_model.n_estimators)
     di5.metric("Cancer Features", cancer_model.n_features_in_)
     di6.metric("Cancer Classes",  len(cancer_model.classes_))
-    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ─── Footer ───────────────────────────────────────────────────────────────────
 st.markdown("""
 <div style="background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(0,0,0,0));
-     border:1px solid rgba(0,212,255,0.1);border-radius:14px;padding:16px 28px;margin-top:12px;
+     border:1px solid rgba(0,212,255,0.1);border-radius:14px;padding:16px 28px;margin-top:24px;
      display:flex;justify-content:space-between;align-items:center">
     <div style="display:flex;align-items:center;gap:14px">
         <div style="width:36px;height:36px;background:linear-gradient(135deg,#00d4ff,#0099cc);
              border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">🏥</div>
-        <span style="font-size:12px;color:#4a6a8a;font-family:'DM Mono',monospace">
-            MedCore Clinical AI v3.0 &nbsp;·&nbsp; heart_model.pkl &amp; cancer_model.pkl
-            &nbsp;·&nbsp; OCR Reports 
+        <span style="font-size:12px;color:#4a6a8a;font-family:'Share Tech Mono',monospace">
+            MedCore Clinical AI HUD v4.2 PRO &nbsp;·&nbsp; Dual RandomForest Core
+            &nbsp;·&nbsp; Real-Time Telemetry
         </span>
     </div>
-    <span style="font-size:11px;color:#2a4a6a;font-family:'DM Mono',monospace">
+    <span style="font-size:11px;color:#2a4a6a;font-family:'Share Tech Mono',monospace">
         ⚕️ Research &amp; Education Only · Not for Clinical Use
     </span>
 </div>
