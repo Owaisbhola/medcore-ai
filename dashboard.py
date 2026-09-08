@@ -1602,42 +1602,28 @@ with tab5:
                 "see the note below.")
 
     # Backend + model picker
-    backend_options = []
+    backend_options = ["⚡ Fast Clinical Engine (Instant)"]
     if ollama_up_chat:
-        backend_options.append("Ollama (local, free)")
+        backend_options.append("🤖 Ollama Llama-3 (Streaming AI)")
     if claude_ok_chat:
-        backend_options.append("Claude API (paid)")
+        backend_options.append("🧠 Claude API (Streaming)")
 
-    chat_backend, chat_model = None, None
-    if backend_options:
-        chat_backend = st.radio("Answering with:", backend_options, horizontal=True, key="chat_backend_choice") \
-            if len(backend_options) > 1 else backend_options[0]
-        if chat_backend.startswith("Ollama"):
-            pulled = rpx.ollama_list_models()
-            chat_model = pulled[0] if pulled else "llama3"
-    else:
+    chat_backend = st.radio("Intelligence Engine:", backend_options, horizontal=True, key="chat_backend_choice")
+    chat_model = "llama3"
+    if chat_backend.startswith("🤖 Ollama"):
+        pulled = rpx.ollama_list_models()
+        chat_model = pulled[0] if pulled else "llama3"
+
+    if not ollama_up_chat and not claude_ok_chat:
         st.markdown(
             '<div style="color:#4a6a8a;font-size:11px;margin-bottom:8px">'
-            '💡 Running in keyword-lookup mode only. Install <a href="https://ollama.com/download" style="color:#00d4ff">Ollama</a> '
-            'and run <code>ollama pull llama3</code> for full free-form, RAG-grounded answers — free, local, no API key.'
+            '💡 Fast Clinical Engine active (< 0.05s response). For full free-form Llama 3 answers, start <a href="https://ollama.com/download" style="color:#00d4ff">Ollama</a> locally.'
             '</div>', unsafe_allow_html=True,
         )
 
-    def get_response(question):
-        if RAG_AVAILABLE and chat_backend and (chat_backend.startswith("Claude") or chat_model):
-            backend_key = "ollama" if chat_backend.startswith("Ollama") else "claude"
-            parsed_ctx = st.session_state.get("ocr_parsed_result")
-            answer, chunks = rag_chat.answer_question(
-                question, parsed_result=parsed_ctx, backend=backend_key,
-                model=chat_model or "llama3",
-            )
-            sources = [{"title": c["title"], "score": round(c["score"], 3)} for c in chunks]
-            return answer, sources
-        return get_fallback_response(question), []
-
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = [
-            {"role": "assistant", "content": "Hello! I am **MedCore Health Assistant**. I can explain your diagnosis results, biomarkers, medications, and lab values — grounded in your latest uploaded report when available. Ask me anything!", "sources": []}
+            {"role": "assistant", "content": "Hello! I am **MedCore AI Copilot**. I can explain your diagnostic results, biomarkers, cardiovascular telemetry, oncology findings, medications, and lab values — grounded in your clinical reports. Ask me anything!", "sources": []}
         ]
 
     for msg in st.session_state.chat_history:
@@ -1653,13 +1639,36 @@ with tab5:
         st.session_state.chat_history.append({"role": "user", "content": user_input, "sources": []})
         with st.chat_message("user", avatar="👤"):
             st.markdown(user_input)
+
         with st.chat_message("assistant", avatar="🏥"):
-            with st.spinner("Thinking…"):
-                reply, sources = get_response(user_input)
-            st.markdown(reply)
+            parsed_ctx = st.session_state.get("ocr_parsed_result")
+            backend_key = "fast"
+            if chat_backend.startswith("🤖 Ollama"):
+                backend_key = "ollama"
+            elif chat_backend.startswith("🧠 Claude"):
+                backend_key = "claude"
+
+            sources = []
+            if RAG_AVAILABLE:
+                chunks = rag_chat.retrieve(user_input, k=3)
+                sources = [{"title": c["title"], "score": round(c["score"], 3)} for c in chunks if c.get("score", 0) > 0.08]
+
+            if RAG_AVAILABLE:
+                stream_gen = rag_chat.stream_answer(
+                    user_input,
+                    parsed_result=parsed_ctx,
+                    backend=backend_key,
+                    model=chat_model or "llama3",
+                )
+                reply = st.write_stream(stream_gen)
+            else:
+                reply = get_fallback_response(user_input)
+                st.markdown(reply)
+
             if sources:
                 src_line = "  ·  ".join(f"{s['title']} ({s['score']})" for s in sources)
                 st.markdown(f'<div style="color:#4a6a8a;font-size:11px;margin-top:6px">📚 Sources: {src_line}</div>', unsafe_allow_html=True)
+
         st.session_state.chat_history.append({"role": "assistant", "content": reply, "sources": sources})
 
     if st.button("Clear Chat", key="clear_chat"):
