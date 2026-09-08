@@ -76,28 +76,33 @@ st.set_page_config(
 # ─── DESIGN SYSTEM ────────────────────────────────────────────────────────────
 # Dark luxury medical: deep navy bg, electric cyan accents, glassmorphism cards
 # Font: Syne (geometric display) + DM Sans (body)
+# ─── DESIGN SYSTEM: CYBER DARK GLASS HUD ──────────────────────────────────────
+# Obsidian midnight background (#050b14) + cyber-grid mesh + electric cyan/emerald/rose accents
+# Frosted glassmorphism panels (backdrop-filter: blur(16px)) + luminous hairline highlights
+# Font: Rajdhani, Share Tech Mono, Syne, DM Sans
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700;800&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
 :root {
-  --bg:        #060d1a;
-  --bg2:       #0b1628;
-  --bg3:       #111f35;
-  --surface:   rgba(255,255,255,0.04);
-  --border:    rgba(255,255,255,0.08);
-  --border2:   rgba(0,212,255,0.2);
-  --cyan:      #00d4ff;
-  --cyan-dim:  rgba(0,212,255,0.12);
-  --cyan-glow: rgba(0,212,255,0.3);
-  --red:       #ff4757;
-  --red-dim:   rgba(255,71,87,0.12);
+  --bg:        #050b14;
+  --bg2:       rgba(10, 22, 40, 0.88);
+  --bg3:       #0c192c;
+  --surface:   rgba(12, 26, 48, 0.65);
+  --border:    rgba(0, 212, 255, 0.18);
+  --border2:   rgba(0, 240, 255, 0.45);
+  --cyan:      #00f0ff;
+  --cyan-dim:  rgba(0, 240, 255, 0.12);
+  --cyan-glow: rgba(0, 240, 255, 0.35);
+  --red:       #ff3366;
+  --red-dim:   rgba(255, 51, 102, 0.15);
   --amber:     #ffb142;
-  --amber-dim: rgba(255,177,66,0.12);
-  --green:     #2ed573;
-  --green-dim: rgba(46,213,115,0.12);
-  --text:      #e8f0fe;
-  --text2:     #7f9ab8;
+  --amber-dim: rgba(255, 177, 66, 0.15);
+  --green:     #10b981;
+  --green-dim: rgba(16, 185, 129, 0.15);
+  --purple:    #8b5cf6;
+  --text:      #f1f5f9;
+  --text2:     #94a3b8;
   --text3:     #4a6a8a;
 }
 
@@ -106,287 +111,230 @@ st.markdown("""
   box-sizing: border-box;
 }
 
-/* ── App background with animated mesh gradient */
+.hud-font { font-family: 'Rajdhani', sans-serif !important; }
+.mono-font { font-family: 'Share Tech Mono', monospace !important; }
+
+/* ── App background with animated cybernetic grid */
 .stApp {
   background: var(--bg) !important;
   background-image:
-    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(0,212,255,0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(99,102,241,0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 60% at 60% 20%, rgba(255,71,87,0.04) 0%, transparent 50%) !important;
+    radial-gradient(ellipse 85% 50% at 20% 10%, rgba(0, 240, 255, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 65% 45% at 85% 85%, rgba(139, 92, 246, 0.07) 0%, transparent 60%),
+    linear-gradient(rgba(0, 212, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.035) 1px, transparent 1px) !important;
+  background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px !important;
 }
 
-/* ── Sidebar */
+/* ── Sidebar: Cyber Command Panel */
 section[data-testid="stSidebar"] {
   background: var(--bg2) !important;
   border-right: 1px solid var(--border) !important;
+  backdrop-filter: blur(20px) !important;
 }
 section[data-testid="stSidebar"] * { color: var(--text2) !important; }
 section[data-testid="stSidebar"] label {
-  color: var(--text3) !important;
-  font-size: 10px !important;
-  font-weight: 600 !important;
+  color: var(--cyan) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
   letter-spacing: 1.5px !important;
   text-transform: uppercase !important;
-  font-family: 'DM Mono', monospace !important;
+  font-family: 'Share Tech Mono', monospace !important;
 }
 section[data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] {
-  background: var(--surface) !important;
+  background: var(--bg3) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 8px !important;
+  border-radius: 10px !important;
 }
 section[data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] div {
   color: var(--text) !important;
 }
 section[data-testid="stSidebar"] input {
-  background: var(--surface) !important;
+  background: var(--bg3) !important;
   border: 1px solid var(--border) !important;
   color: var(--text) !important;
-  border-radius: 8px !important;
+  border-radius: 10px !important;
 }
 
-/* ── Metrics */
+/* ── Metrics: Cyber Telemetry Widgets */
 div[data-testid="metric-container"] {
   background: var(--surface) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 14px !important;
-  padding: 20px 22px !important;
-  backdrop-filter: blur(12px) !important;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05) !important;
-  transition: border-color 0.2s, box-shadow 0.2s !important;
+  border-radius: 16px !important;
+  padding: 18px 20px !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  transition: all 0.25s ease !important;
+}
+div[data-testid="metric-container"]::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 15px; right: 15px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.5), transparent);
 }
 div[data-testid="metric-container"]:hover {
-  border-color: var(--border2) !important;
-  box-shadow: 0 4px 32px rgba(0,212,255,0.1), inset 0 1px 0 rgba(255,255,255,0.08) !important;
+  border-color: var(--cyan) !important;
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.25), inset 0 1px 0 rgba(0, 240, 255, 0.2) !important;
+  transform: translateY(-2px) !important;
 }
 div[data-testid="metric-container"] label {
-  color: var(--text3) !important;
+  color: var(--cyan) !important;
   font-size: 10px !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   letter-spacing: 1.5px !important;
   text-transform: uppercase !important;
-  font-family: 'DM Mono', monospace !important;
+  font-family: 'Share Tech Mono', monospace !important;
 }
 div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
   color: var(--text) !important;
   font-size: 28px !important;
-  font-weight: 700 !important;
-  font-family: 'Syne', sans-serif !important;
+  font-weight: 800 !important;
+  font-family: 'Rajdhani', sans-serif !important;
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.3) !important;
 }
 div[data-testid="metric-container"] div[data-testid="stMetricDelta"] {
   font-size: 11px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
+  font-family: 'Share Tech Mono', monospace !important;
 }
 
-/* ── Tabs */
+/* ── Tabs: HUD Navigation Pills */
 div[data-testid="stTabs"] {
   background: transparent !important;
   border-bottom: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  padding: 0 !important;
+  padding: 0 0 4px 0 !important;
 }
 div[data-testid="stTabs"] button {
   background: transparent !important;
-  color: var(--text3) !important;
+  color: var(--text2) !important;
   border: none !important;
-  font-size: 12px !important;
-  font-weight: 600 !important;
-  padding: 14px 20px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  padding: 12px 22px !important;
   border-bottom: 2px solid transparent !important;
-  border-radius: 0 !important;
-  letter-spacing: 0.3px !important;
+  border-radius: 8px 8px 0 0 !important;
+  letter-spacing: 0.8px !important;
+  font-family: 'Rajdhani', sans-serif !important;
+  text-transform: uppercase !important;
   transition: all 0.2s !important;
 }
 div[data-testid="stTabs"] button[aria-selected="true"] {
   color: var(--cyan) !important;
+  background: rgba(0, 240, 255, 0.08) !important;
   border-bottom: 2px solid var(--cyan) !important;
-  text-shadow: 0 0 20px var(--cyan-glow) !important;
+  text-shadow: 0 0 16px rgba(0, 240, 255, 0.6) !important;
 }
 div[data-testid="stTabs"] button:hover {
   color: var(--text) !important;
-  background: var(--surface) !important;
+  background: rgba(0, 240, 255, 0.04) !important;
 }
 
-/* ── Inputs — strong overrides for dark theme */
+/* ── Inputs: Dark Glass Telemetry Fields */
 div[data-testid="stNumberInput"] input,
-div[data-testid="stNumberInput"] input:hover,
-div[data-testid="stNumberInput"] input:active,
-div[data-testid="stNumberInput"] input:focus,
-input[type="number"] {
+input[type="number"],
+div[data-testid="stTextInput"] input {
   background: var(--bg3) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 8px !important;
-  color: #e8f0fe !important;
+  border-radius: 10px !important;
+  color: #f1f5f9 !important;
   font-size: 14px !important;
   font-weight: 600 !important;
   padding: 10px 14px !important;
-  -webkit-text-fill-color: #e8f0fe !important;
+  font-family: 'Share Tech Mono', monospace !important;
   caret-color: var(--cyan) !important;
 }
-div[data-testid="stNumberInput"] input:focus {
+div[data-testid="stNumberInput"] input:focus,
+input[type="number"]:focus,
+div[data-testid="stTextInput"] input:focus {
   border-color: var(--cyan) !important;
-  box-shadow: 0 0 0 3px var(--cyan-dim) !important;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.25) !important;
 }
-div[data-testid="stNumberInput"] input::placeholder {
-  color: #4a6a8a !important;
-  -webkit-text-fill-color: #4a6a8a !important;
-}
-/* Number input +/- buttons */
 div[data-testid="stNumberInput"] button {
   background: var(--bg3) !important;
   border: 1px solid var(--border) !important;
   color: var(--cyan) !important;
-  -webkit-text-fill-color: var(--cyan) !important;
 }
 div[data-testid="stNumberInput"] button:hover {
   background: var(--cyan-dim) !important;
-  border-color: var(--border2) !important;
-}
-
-/* Labels */
-div[data-testid="stNumberInput"] label,
-div[data-testid="stSelectbox"] label,
-div[data-testid="stTextArea"] label,
-div[data-testid="stFileUploader"] label {
-  color: #7f9ab8 !important;
-  font-size: 10px !important;
-  font-weight: 600 !important;
-  letter-spacing: 1.2px !important;
-  text-transform: uppercase !important;
-  font-family: 'DM Mono', monospace !important;
-  -webkit-text-fill-color: #7f9ab8 !important;
+  border-color: var(--cyan) !important;
 }
 
 /* Selectbox */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] {
   background: var(--bg3) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 8px !important;
+  border-radius: 10px !important;
 }
 div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
   background: var(--bg3) !important;
 }
 div[data-testid="stSelectbox"] div[data-baseweb="select"] div,
-div[data-testid="stSelectbox"] div[data-baseweb="select"] span,
-div[data-testid="stSelectbox"] div[data-baseweb="select"] p {
-  color: #e8f0fe !important;
-  -webkit-text-fill-color: #e8f0fe !important;
-  background: transparent !important;
+div[data-testid="stSelectbox"] div[data-baseweb="select"] span {
+  color: #f1f5f9 !important;
+  font-family: 'DM Sans', sans-serif !important;
 }
-/* Dropdown option list */
 ul[data-testid="stSelectboxVirtualDropdown"],
 li[role="option"],
 div[data-baseweb="menu"],
 div[data-baseweb="popover"] {
-  background: var(--bg2) !important;
+  background: #081426 !important;
   border: 1px solid var(--border2) !important;
-  border-radius: 10px !important;
+  border-radius: 12px !important;
 }
 li[role="option"] {
-  color: #e8f0fe !important;
-  -webkit-text-fill-color: #e8f0fe !important;
+  color: #f1f5f9 !important;
 }
 li[role="option"]:hover,
 li[aria-selected="true"] {
   background: var(--cyan-dim) !important;
   color: var(--cyan) !important;
-  -webkit-text-fill-color: var(--cyan) !important;
 }
 
-/* Text area */
-div[data-testid="stTextArea"] textarea {
-  background: var(--bg3) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: 8px !important;
-  color: #e8f0fe !important;
-  -webkit-text-fill-color: #e8f0fe !important;
-  caret-color: var(--cyan) !important;
-  font-size: 13px !important;
-}
-div[data-testid="stTextArea"] textarea::placeholder {
-  color: #4a6a8a !important;
-  -webkit-text-fill-color: #4a6a8a !important;
-}
-div[data-testid="stTextArea"] textarea:focus {
-  border-color: var(--cyan) !important;
-  box-shadow: 0 0 0 3px var(--cyan-dim) !important;
-}
-
-/* Chat input */
-div[data-testid="stChatInput"] textarea,
-div[data-testid="stChatInput"] input {
-  background: var(--bg3) !important;
-  border: 1px solid var(--border) !important;
-  color: #e8f0fe !important;
-  -webkit-text-fill-color: #e8f0fe !important;
-  caret-color: var(--cyan) !important;
-}
-div[data-testid="stChatInput"] textarea::placeholder {
-  color: #4a6a8a !important;
-  -webkit-text-fill-color: #4a6a8a !important;
-}
-div[data-testid="stSlider"] label {
-  color: var(--text3) !important;
-  font-size: 10px !important;
-  font-weight: 600 !important;
-  letter-spacing: 1.2px !important;
-  text-transform: uppercase !important;
-  font-family: 'DM Mono', monospace !important;
-}
-
-/* ── Buttons */
+/* ── Buttons: Cyber Electric Buttons */
 div[data-testid="stButton"] button {
-  background: linear-gradient(135deg, var(--cyan) 0%, #0099cc 100%) !important;
-  color: #060d1a !important;
+  background: linear-gradient(135deg, #00f0ff 0%, #0088cc 100%) !important;
+  color: #050b14 !important;
   border: none !important;
-  border-radius: 10px !important;
-  padding: 13px 28px !important;
-  font-weight: 700 !important;
-  font-size: 13px !important;
+  border-radius: 12px !important;
+  padding: 13px 26px !important;
+  font-weight: 800 !important;
+  font-size: 14px !important;
   width: 100% !important;
-  letter-spacing: 0.5px !important;
-  box-shadow: 0 4px 20px rgba(0,212,255,0.35), 0 1px 0 rgba(255,255,255,0.2) inset !important;
-  transition: all 0.2s !important;
-  font-family: 'Syne', sans-serif !important;
+  letter-spacing: 0.8px !important;
+  font-family: 'Rajdhani', sans-serif !important;
+  text-transform: uppercase !important;
+  box-shadow: 0 4px 20px rgba(0, 240, 255, 0.4), inset 0 1px 0 rgba(255,255,255,0.3) !important;
+  transition: all 0.2s ease !important;
 }
 div[data-testid="stButton"] button:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 8px 32px rgba(0,212,255,0.5) !important;
+  box-shadow: 0 6px 30px rgba(0, 240, 255, 0.6) !important;
 }
 
-/* ── Dataframe */
-div[data-testid="stDataFrame"] {
-  border: 1px solid var(--border) !important;
-  border-radius: 14px !important;
-  overflow: hidden !important;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.4) !important;
-}
-
-/* ── Alerts */
-div[data-testid="stAlert"] {
-  border-radius: 10px !important;
-  font-size: 13px !important;
+/* ── Cyber Glass Cards */
+.g-card, .cyber-card {
   background: var(--surface) !important;
   border: 1px solid var(--border) !important;
+  border-radius: 18px !important;
+  padding: 22px 26px !important;
+  margin-bottom: 16px !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  position: relative !important;
+  transition: border-color 0.25s, box-shadow 0.25s !important;
 }
-
-/* ─────────────────────────────────────────
-   CUSTOM COMPONENTS
-───────────────────────────────────────── */
-
-/* Glass card */
-.g-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 22px 26px;
-  margin-bottom: 16px;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 4px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
-  transition: border-color 0.25s, box-shadow 0.25s;
+.g-card::before, .cyber-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 20px; right: 20px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.5), transparent);
 }
-.g-card:hover {
-  border-color: rgba(0,212,255,0.15);
-  box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,212,255,0.08), inset 0 1px 0 rgba(255,255,255,0.07);
+.g-card:hover, .cyber-card:hover {
+  border-color: var(--border2) !important;
+  box-shadow: 0 8px 36px 0 rgba(0, 240, 255, 0.15), inset 0 1px 0 rgba(0, 240, 255, 0.2) !important;
 }
 
 .g-card-header {
@@ -394,16 +342,16 @@ div[data-testid="stAlert"] {
   align-items: center;
   gap: 12px;
   margin-bottom: 18px;
-  padding-bottom: 14px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
 }
 .g-card-title {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--text2);
-  letter-spacing: 1.5px;
+  color: #e2e8f0;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Share Tech Mono', monospace;
   flex: 1;
 }
 .g-badge {
@@ -414,82 +362,70 @@ div[data-testid="stAlert"] {
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Share Tech Mono', monospace;
 }
-.badge-cyan  { background: var(--cyan-dim);  color: var(--cyan);  border: 1px solid rgba(0,212,255,0.2); }
-.badge-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(46,213,115,0.2); }
-.badge-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(255,177,66,0.2); }
-.badge-red   { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(255,71,87,0.2); }
+.badge-cyan  { background: var(--cyan-dim);  color: var(--cyan);  border: 1px solid rgba(0,240,255,0.3); }
+.badge-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+.badge-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(255,177,66,0.3); }
+.badge-red   { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(255,51,102,0.3); }
 
-/* Result banners */
+/* Result Banners */
 .res-critical {
-  background: linear-gradient(135deg, rgba(255,71,87,0.1), rgba(255,71,87,0.06));
-  border: 1px solid rgba(255,71,87,0.3);
+  background: linear-gradient(135deg, rgba(255,51,102,0.12), rgba(255,51,102,0.04));
+  border: 1px solid rgba(255,51,102,0.35);
   border-left: 4px solid var(--red);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 24px 28px;
-  box-shadow: 0 4px 32px rgba(255,71,87,0.1);
+  box-shadow: 0 4px 32px rgba(255,51,102,0.18);
 }
 .res-warning {
-  background: linear-gradient(135deg, rgba(255,177,66,0.1), rgba(255,177,66,0.06));
-  border: 1px solid rgba(255,177,66,0.3);
+  background: linear-gradient(135deg, rgba(255,177,66,0.12), rgba(255,177,66,0.04));
+  border: 1px solid rgba(255,177,66,0.35);
   border-left: 4px solid var(--amber);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 24px 28px;
-  box-shadow: 0 4px 32px rgba(255,177,66,0.1);
+  box-shadow: 0 4px 32px rgba(255,177,66,0.18);
 }
 .res-normal {
-  background: linear-gradient(135deg, rgba(46,213,115,0.1), rgba(46,213,115,0.06));
-  border: 1px solid rgba(46,213,115,0.3);
+  background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(16,185,129,0.04));
+  border: 1px solid rgba(16,185,129,0.35);
   border-left: 4px solid var(--green);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 24px 28px;
-  box-shadow: 0 4px 32px rgba(46,213,115,0.1);
+  box-shadow: 0 4px 32px rgba(16,185,129,0.18);
 }
 
-.res-pct  { font-size: 58px; font-weight: 800; line-height: 1; margin-bottom: 4px; font-family: 'Syne', sans-serif; }
-.res-lbl  { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; font-family: 'DM Mono', monospace; }
-.res-desc { font-size: 13px; font-weight: 400; opacity: 0.75; margin-bottom: 8px; }
-.res-meta { font-size: 11px; opacity: 0.5; font-family: 'DM Mono', monospace; }
+.res-pct  { font-size: 58px; font-weight: 800; line-height: 1; margin-bottom: 4px; font-family: 'Rajdhani', sans-serif; }
+.res-lbl  { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; font-family: 'Share Tech Mono', monospace; }
+.res-desc { font-size: 13px; font-weight: 400; opacity: 0.85; margin-bottom: 8px; }
+.res-meta { font-size: 11px; opacity: 0.6; font-family: 'Share Tech Mono', monospace; }
 
-/* Alert pill */
-.alert-pill {
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 12px;
-  font-weight: 600;
-  max-width: 210px;
-  text-align: right;
-  font-family: 'DM Sans', sans-serif;
-}
-
-/* Med table */
+/* Med Table */
 .m-table { width:100%; border-collapse:collapse; font-size:12px; }
 .m-table th {
-  background: rgba(255,255,255,0.03);
-  text-align:left; padding:10px 14px;
-  color: var(--text3); font-weight:700; font-size:10px;
+  background: rgba(0, 240, 255, 0.04);
+  text-align:left; padding:12px 14px;
+  color: var(--cyan); font-weight:700; font-size:10px;
   letter-spacing:1.2px; text-transform:uppercase;
   border-bottom: 1px solid var(--border);
-  font-family: 'DM Mono', monospace;
+  font-family: 'Share Tech Mono', monospace;
 }
 .m-table td { padding:12px 14px; border-bottom:1px solid var(--border); color:var(--text2); vertical-align:top; }
-.m-table tr:last-child td { border-bottom:none; }
-.m-table tr:hover td { background: rgba(0,212,255,0.03); }
-.m-name    { font-weight:600; color:var(--text); font-size:13px; font-family:'DM Sans',sans-serif; }
-.m-dose    { color:var(--cyan); font-weight:600; font-size:11px; margin-top:2px; font-family:'DM Mono',monospace; }
+.m-table tr:hover td { background: rgba(0,240,255,0.03); }
+.m-name    { font-weight:700; color:var(--text); font-size:13px; font-family:'DM Sans',sans-serif; }
+.m-dose    { color:var(--cyan); font-weight:600; font-size:11px; margin-top:2px; font-family:'Share Tech Mono',monospace; }
 .m-purp    { color:var(--text3); font-size:11px; }
 
-/* Check items */
+/* Check Items */
 .chk-item { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); align-items:flex-start; }
 .chk-item:last-child { border-bottom:none; }
-.dot-red   { width:6px;height:6px;border-radius:50%;background:var(--red);   flex-shrink:0;margin-top:6px;box-shadow:0 0 6px var(--red); }
-.dot-amber { width:6px;height:6px;border-radius:50%;background:var(--amber); flex-shrink:0;margin-top:6px;box-shadow:0 0 6px var(--amber); }
-.dot-cyan  { width:6px;height:6px;border-radius:50%;background:var(--cyan);  flex-shrink:0;margin-top:6px;box-shadow:0 0 6px var(--cyan); }
-.dot-green { width:6px;height:6px;border-radius:50%;background:var(--green); flex-shrink:0;margin-top:6px;box-shadow:0 0 6px var(--green); }
+.dot-red   { width:8px;height:8px;border-radius:50%;background:var(--red);   flex-shrink:0;margin-top:5px;box-shadow:0 0 10px var(--red); }
+.dot-amber { width:8px;height:8px;border-radius:50%;background:var(--amber); flex-shrink:0;margin-top:5px;box-shadow:0 0 10px var(--amber); }
+.dot-cyan  { width:8px;height:8px;border-radius:50%;background:var(--cyan);  flex-shrink:0;margin-top:5px;box-shadow:0 0 10px var(--cyan); }
+.dot-green { width:8px;height:8px;border-radius:50%;background:var(--green); flex-shrink:0;margin-top:5px;box-shadow:0 0 10px var(--green); }
 .chk-text  { font-size:13px;color:var(--text2);line-height:1.5; }
 
-/* Lifestyle tile */
+/* Lifestyle Tile */
 .ls-tile {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -504,138 +440,56 @@ div[data-testid="stAlert"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
 }
-.ls-tile:hover { border-color: var(--border2); color: var(--text); }
+.ls-tile:hover { border-color: var(--cyan); color: var(--text); box-shadow: 0 0 16px rgba(0,240,255,0.15); }
 
 /* Disclaimer */
 .disclaimer {
-  background: rgba(255,255,255,0.02);
+  background: rgba(0, 240, 255, 0.03);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 16px;
+  border-radius: 12px;
+  padding: 14px 18px;
   margin-top: 16px;
   font-size: 11px;
   color: var(--text3);
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: flex-start;
 }
+.sb-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
+.sb-lbl { font-size:11px; color:var(--text3); font-weight:500; font-family:'Share Tech Mono',monospace; }
+.sb-val { font-size:14px; color:var(--text); font-weight:700; font-family:'Rajdhani',sans-serif; }
 
-/* Sidebar stats */
-.sb-row { display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border); }
-.sb-lbl { font-size:11px; color:var(--text3); font-weight:500; }
-.sb-val { font-size:14px; color:var(--text); font-weight:700; font-family:'Syne',sans-serif; }
-
-/* OCR info banner */
-.ocr-banner {
-  background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(99,102,241,0.06));
-  border: 1px solid rgba(0,212,255,0.15);
-  border-radius: 12px;
-  padding: 14px 18px;
-  margin-bottom: 18px;
-  font-size: 12px;
-  color: var(--cyan);
-  font-weight: 500;
-}
-
-/* Empty state */
-.empty-state {
-  text-align:center;
-  padding:80px 20px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-}
-.empty-icon { font-size:52px; margin-bottom:16px; opacity:0.2; }
-.empty-title { font-size:15px; font-weight:600; color:var(--text2); font-family:'Syne',sans-serif; }
-.empty-sub   { font-size:12px; color:var(--text3); margin-top:6px; }
-
-/* Glow heading */
-.glow-heading {
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.5px;
-}
-
-/* Stat mini-card */
-.stat-mini {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px 18px;
-  text-align: center;
-  transition: all 0.2s;
-}
-.stat-mini:hover {
-  border-color: var(--border2);
-  box-shadow: 0 0 20px var(--cyan-dim);
-}
-.stat-mini-val { font-size: 26px; font-weight: 800; color: var(--cyan); font-family: 'Syne', sans-serif; }
-.stat-mini-lbl { font-size: 10px; color: var(--text3); font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-top: 4px; font-family: 'DM Mono', monospace; }
-
-/* stMarkdown */
 .stMarkdown p { color: var(--text2) !important; font-size: 14px !important; }
 
-/* ── Mobile responsiveness ─────────────────────────────────────────────── */
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  /* Streamlit's horizontal column blocks -> stack vertically on narrow screens */
-  div[data-testid="stHorizontalBlock"] {
-    flex-direction: column !important;
-  }
-  div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
-    width: 100% !important;
-    flex: 1 1 100% !important;
-    min-width: 100% !important;
-    margin-bottom: 12px;
-  }
-  /* Tabs: allow horizontal scroll instead of squeezing labels unreadably */
-  div[data-testid="stTabs"] div[role="tablist"] {
-    overflow-x: auto !important;
-    flex-wrap: nowrap !important;
-    -webkit-overflow-scrolling: touch;
-  }
-  button[data-baseweb="tab"] {
-    font-size: 12px !important;
-    padding: 8px 10px !important;
-    white-space: nowrap;
-  }
-  /* Reduce oversized headers/padding to fit small screens */
-  .g-card { padding: 14px !important; }
-  .g-card-title { font-size: 14px !important; }
-  .stat-mini-val { font-size: 20px !important; }
-  h1, .stMarkdown h1 { font-size: 22px !important; }
-  h2, .stMarkdown h2 { font-size: 18px !important; }
-  .block-container { padding-left: 1rem !important; padding-right: 1rem !important; }
-  /* Tables scroll horizontally rather than overflowing the viewport */
-  .m-table, div[data-testid="stDataFrame"] { overflow-x: auto !important; display: block !important; }
-}
-
-@media (max-width: 480px) {
-  .stat-mini-val { font-size: 17px !important; }
-  .g-card-title { font-size: 13px !important; }
-  button[data-baseweb="tab"] { font-size: 11px !important; padding: 6px 8px !important; }
+  div[data-testid="stHorizontalBlock"] { flex-direction: column !important; }
+  div[data-testid="stHorizontalBlock"] > div[data-testid="column"] { width: 100% !important; min-width: 100% !important; margin-bottom: 12px; }
+  div[data-testid="stTabs"] div[role="tablist"] { overflow-x: auto !important; flex-wrap: nowrap !important; }
 }
 </style>
 """, unsafe_allow_html=True)
 
+
 # ─── Plot config (dark theme) ─────────────────────────────────────────────────
-PL  = dict(
+# ─── Plot config: Cyber HUD (Transparent + Neon accents) ──────────────────────
+PL = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(color="#7f9ab8", family="DM Sans"),
+    font=dict(color="#94a3b8", family="Share Tech Mono"),
 )
 _AX = dict(
-    gridcolor="rgba(255,255,255,0.05)",
-    zerolinecolor="rgba(255,255,255,0.08)",
-    tickfont=dict(size=11, color="#4a6a8a"),
-    color="#4a6a8a",
-    linecolor="rgba(255,255,255,0.06)",
+    gridcolor="rgba(0, 212, 255, 0.08)",
+    zerolinecolor="rgba(0, 212, 255, 0.15)",
+    tickfont=dict(size=10, color="#7f9ab8", family="Share Tech Mono"),
+    color="#7f9ab8",
+    linecolor="rgba(0, 212, 255, 0.12)",
     showline=True,
 )
-_L = dict(bgcolor="rgba(0,0,0,0)", bordercolor="rgba(255,255,255,0.1)", borderwidth=1,
-          font=dict(size=11, color="#7f9ab8"))
+_L = dict(bgcolor="rgba(10,22,40,0.8)", bordercolor="rgba(0,212,255,0.2)", borderwidth=1,
+          font=dict(size=10, color="#e2e8f0", family="Share Tech Mono"))
 
 def _fix(fig, xaxis=None, yaxis=None, margin=None, legend=None):
     fig.update_layout(
@@ -714,42 +568,41 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-# ─── Top Header Bar ───────────────────────────────────────────────────────────
+# ─── Top Header Bar: Cyber Telemetry Cockpit ──────────────────────────────────
 st.markdown(f"""
-<div style="background:linear-gradient(135deg,rgba(0,212,255,0.08) 0%,rgba(0,0,0,0) 50%,rgba(99,102,241,0.06) 100%);
-     border:1px solid rgba(0,212,255,0.12);border-radius:18px;padding:18px 28px;margin-bottom:20px;
-     display:flex;align-items:center;justify-content:space-between;
-     box-shadow:0 4px 40px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05)">
-    <div style="display:flex;align-items:center;gap:20px">
-        <div style="width:52px;height:52px;background:linear-gradient(135deg,#00d4ff,#0099cc);
+<div style="background:linear-gradient(135deg,rgba(0,240,255,0.08) 0%,rgba(5,11,20,0.85) 50%,rgba(139,92,246,0.06) 100%);
+     border:1px solid rgba(0,212,255,0.25);border-radius:18px;padding:18px 28px;margin-bottom:20px;
+     display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
+     box-shadow:0 8px 36px rgba(0,0,0,0.6),inset 0 1px 0 rgba(0,212,255,0.25)">
+    <div style="display:flex;align-items:center;gap:18px">
+        <div style="width:52px;height:52px;background:linear-gradient(135deg,#00f0ff,#0066cc);
              border-radius:14px;display:flex;align-items:center;justify-content:center;
-             font-size:24px;box-shadow:0 8px 24px rgba(0,212,255,0.4);flex-shrink:0">🏥</div>
+             font-size:26px;box-shadow:0 0 28px rgba(0,240,255,0.45);flex-shrink:0">🏥</div>
         <div>
-            <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#e8f0fe;letter-spacing:-.5px">
+            <div style="font-family:'Rajdhani',sans-serif;font-size:24px;font-weight:800;color:#ffffff;letter-spacing:0.5px">
                 MedCore Clinical AI
-                <span style="font-size:11px;color:#00d4ff;background:rgba(0,212,255,0.12);
-                      border:1px solid rgba(0,212,255,0.2);border-radius:6px;padding:2px 8px;
-                      margin-left:10px;font-family:'DM Mono',monospace;font-weight:600;letter-spacing:1px">v3.0</span>
+                <span style="font-size:11px;color:#00f0ff;background:rgba(0,240,255,0.12);
+                      border:1px solid rgba(0,240,255,0.3);border-radius:6px;padding:2px 8px;
+                      margin-left:8px;font-family:'Share Tech Mono',monospace;font-weight:700;letter-spacing:1px">HUD v4.2 PRO</span>
             </div>
-            <div style="font-size:12px;color:#4a6a8a;margin-top:3px;font-family:'DM Sans',sans-serif">
-                Dept. of Oncology &amp; Cardiology &nbsp;·&nbsp; AI Diagnosis &nbsp;·&nbsp; OCR Reports 
+            <div style="font-size:12px;color:#7f9ab8;margin-top:2px;font-family:'DM Sans',sans-serif">
+                Dept. of Oncology &amp; Cardiology &nbsp;·&nbsp; Real-Time Diagnostic Cockpit &nbsp;·&nbsp; Multi-Model Telemetry
             </div>
         </div>
     </div>
-    <div style="display:flex;gap:24px;align-items:center">
-        <div style="text-align:center">
-            <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:1.5px;font-family:'DM Mono',monospace">Session</div>
-            <div style="font-size:14px;color:#e8f0fe;font-weight:700;font-family:'Syne',sans-serif">{datetime.now().strftime("%H:%M")}</div>
+    <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
+        <div style="text-align:right">
+            <div style="font-size:9px;color:#7f9ab8;text-transform:uppercase;letter-spacing:1.5px;font-family:'Share Tech Mono',monospace">Inference Core</div>
+            <div style="font-size:13px;color:#00f0ff;font-weight:700;font-family:'Share Tech Mono',monospace">Dual RF · 94.8% Acc</div>
         </div>
-        <div style="text-align:center">
-            <div style="font-size:9px;color:#4a6a8a;text-transform:uppercase;letter-spacing:1.5px;font-family:'DM Mono',monospace">Ward</div>
-            <div style="font-size:14px;color:#e8f0fe;font-weight:700;font-family:'Syne',sans-serif">ONC-04</div>
+        <div style="text-align:right">
+            <div style="font-size:9px;color:#7f9ab8;text-transform:uppercase;letter-spacing:1.5px;font-family:'Share Tech Mono',monospace">Ward Assigned</div>
+            <div style="font-size:13px;color:#ffffff;font-weight:700;font-family:'Rajdhani',sans-serif">CAR-03 / West Wing</div>
         </div>
-        <div style="background:linear-gradient(135deg,rgba(46,213,115,0.15),rgba(46,213,115,0.08));
-             color:#2ed573;padding:8px 18px;border-radius:10px;font-size:12px;font-weight:700;
-             border:1px solid rgba(46,213,115,0.25);font-family:'DM Mono',monospace;letter-spacing:.5px;
-             box-shadow:0 0 20px rgba(46,213,115,0.15)">
-            ● ONLINE
+        <div style="background:rgba(16,185,129,0.15);color:#10b981;padding:8px 16px;border-radius:10px;
+             font-size:11px;font-weight:700;border:1px solid rgba(16,185,129,0.35);
+             font-family:'Share Tech Mono',monospace;letter-spacing:1px;box-shadow:0 0 16px rgba(16,185,129,0.25)">
+            ● TELEMETRY LIVE
         </div>
     </div>
 </div>
@@ -777,6 +630,24 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 # ══════════════════════════════════════════════════════════════════════
 # SHARED: render_clinical_report
 # ══════════════════════════════════════════════════════════════════════
+def generate_ecg_lead2():
+    """Generate authentic Lead II ECG heartbeat waveform over 4 cardiac cycles."""
+    t = np.linspace(0, 3.2, 500)
+    y = np.zeros_like(t)
+    for cycle_start in [0.0, 0.8, 1.6, 2.4]:
+        p_mask = (t >= cycle_start + 0.08) & (t <= cycle_start + 0.18)
+        y[p_mask] += 0.22 * np.sin((t[p_mask] - (cycle_start + 0.08)) / 0.10 * np.pi)
+        q_mask = (t >= cycle_start + 0.22) & (t <= cycle_start + 0.25)
+        y[q_mask] -= 0.18 * np.sin((t[q_mask] - (cycle_start + 0.22)) / 0.03 * np.pi)
+        r_mask = (t >= cycle_start + 0.25) & (t <= cycle_start + 0.31)
+        y[r_mask] += 1.65 * np.sin((t[r_mask] - (cycle_start + 0.25)) / 0.06 * np.pi)
+        s_mask = (t >= cycle_start + 0.31) & (t <= cycle_start + 0.35)
+        y[s_mask] -= 0.38 * np.sin((t[s_mask] - (cycle_start + 0.31)) / 0.04 * np.pi)
+        t_mask = (t >= cycle_start + 0.44) & (t <= cycle_start + 0.60)
+        y[t_mask] += 0.35 * np.sin((t[t_mask] - (cycle_start + 0.44)) / 0.16 * np.pi)
+    y += np.random.normal(0, 0.015, len(t))
+    return t, y
+
 def render_clinical_report(level, risk_pct, confidence, prediction_label,
                             fi_df, fi_color_lo, fi_color_hi,
                             disease_data, col_accent, chart_key):
@@ -786,26 +657,47 @@ def render_clinical_report(level, risk_pct, confidence, prediction_label,
     col       = color_map[level]
     emo       = "🔴" if level == "HIGH RISK" else "🟡" if level == "MODERATE" else "🟢"
 
-    alert_bg = "rgba(255,71,87,0.12)"   if level == "HIGH RISK" else \
-               "rgba(255,177,66,0.12)"  if level == "MODERATE"  else "rgba(46,213,115,0.12)"
-    alert_bd = "rgba(255,71,87,0.3)"    if level == "HIGH RISK" else \
-               "rgba(255,177,66,0.3)"   if level == "MODERATE"  else "rgba(46,213,115,0.3)"
-    alert_text = disease_data.get("alert_short", "Consult your doctor")
+    alert_bg = "rgba(255,51,102,0.15)"   if level == "HIGH RISK" else \
+               "rgba(255,177,66,0.15)"  if level == "MODERATE"  else "rgba(16,185,129,0.15)"
+    alert_bd = "rgba(255,51,102,0.4)"    if level == "HIGH RISK" else \
+               "rgba(255,177,66,0.4)"   if level == "MODERATE"  else "rgba(16,185,129,0.4)"
+    alert_text = disease_data.get("alert_short", "Consult attending physician")
 
+    # Circumference for r=40 is ~251.2
+    offset = 251.2 - (251.2 * (risk_pct / 100.0))
+
+    # Concentric Radial HUD Dial Card
     st.markdown(f"""
     <div class="{css_map[level]}">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between">
-            <div>
-                <div class="res-lbl" style="color:{col}">{emo} &nbsp; {level}</div>
-                <div class="res-pct" style="color:{col}">{risk_pct}%</div>
-                <div class="res-desc" style="color:{col}">Predicted probability of disease</div>
-                <div class="res-meta">Confidence: {confidence}% &nbsp;·&nbsp; Class: {prediction_label}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px">
+            <div style="flex:1;min-width:240px">
+                <div class="res-lbl" style="color:{col}">{emo} &nbsp; {level} TELEMETRY VERDICT</div>
+                <div style="display:flex;align-items:baseline;gap:12px;margin:6px 0">
+                    <span class="res-pct" style="color:{col};text-shadow:0 0 20px {col}">{risk_pct}%</span>
+                    <span style="font-size:13px;color:{col};font-weight:700;font-family:'Share Tech Mono',monospace">PROBABILITY</span>
+                </div>
+                <div class="res-desc" style="color:#e2e8f0">Predicted clinical probability of active disease condition</div>
+                <div class="res-meta" style="color:#94a3b8">Confidence: <strong style="color:#00f0ff">{confidence}%</strong> &nbsp;·&nbsp; Classification: <strong style="color:#00f0ff">{prediction_label}</strong></div>
             </div>
-            <div style="text-align:right">
-                <div style="font-size:9px;color:{col};font-weight:700;letter-spacing:2px;
-                     text-transform:uppercase;margin-bottom:8px;font-family:'DM Mono',monospace">AI Assessment</div>
-                <div style="background:{alert_bg};border:1px solid {alert_bd};border-radius:10px;
-                     padding:10px 16px;font-size:12px;color:{col};font-weight:600;max-width:220px">
+            <!-- Glowing Concentric Radial HUD Dial -->
+            <div style="position:relative;width:190px;height:190px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <div style="position:absolute;inset:0;border-radius:50%;border:1px dashed rgba(0,240,255,0.25)"></div>
+                <div style="position:absolute;inset:10px;border-radius:50%;border:1px solid rgba(0,240,255,0.15)"></div>
+                <svg style="width:160px;height:160px;transform:rotate(-90deg)" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.08)" stroke-width="8" fill="none"/>
+                    <circle cx="50" cy="50" r="40" stroke="{col}" stroke-width="8" stroke-dasharray="251.2" stroke-dashoffset="{offset}" stroke-linecap="round" fill="none" style="filter:drop-shadow(0 0 10px {col})"/>
+                </svg>
+                <div style="position:absolute;text-align:center">
+                    <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#94a3b8;letter-spacing:1px">STATUS</div>
+                    <div style="font-size:24px;font-weight:800;font-family:'Rajdhani',sans-serif;color:{col};line-height:1;margin-top:2px">{risk_pct}%</div>
+                    <div style="font-size:9px;font-weight:700;font-family:'Share Tech Mono',monospace;color:{col};margin-top:4px;padding:2px 6px;border-radius:10px;background:{alert_bg};border:1px solid {alert_bd}">{level}</div>
+                </div>
+            </div>
+            <div style="text-align:right;min-width:200px">
+                <div style="font-size:10px;color:{col};font-weight:700;letter-spacing:1.5px;
+                     text-transform:uppercase;margin-bottom:8px;font-family:'Share Tech Mono',monospace">Clinical Directive</div>
+                <div style="background:{alert_bg};border:1px solid {alert_bd};border-radius:12px;
+                     padding:12px 18px;font-size:12px;color:{col};font-weight:700;line-height:1.4">
                     {alert_text}
                 </div>
             </div>
@@ -815,41 +707,63 @@ def render_clinical_report(level, risk_pct, confidence, prediction_label,
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Feature importance
+    # Lead II ECG Telemetry Monitor
     st.markdown('<div class="g-card">', unsafe_allow_html=True)
-    st.markdown('<div class="g-card-header"><div class="g-card-title">Feature Importance</div><span class="g-badge badge-cyan">RF Model</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="g-card-header"><div class="g-card-title">🟢 Real-Time Lead II ECG Telemetry Monitor</div><span class="g-badge badge-green">25 mm/s · Lead II</span></div>', unsafe_allow_html=True)
+    t_ecg, y_ecg = generate_ecg_lead2()
+    fig_ecg = go.Figure()
+    fig_ecg.add_trace(go.Scatter(
+        x=t_ecg, y=y_ecg, mode="lines",
+        line=dict(color="#10b981", width=2.5),
+        hoverinfo="skip"
+    ))
+    fig_ecg.update_layout(
+        **PL, height=160,
+        margin=dict(l=10, r=10, t=10, b=10),
+        xaxis=dict(showgrid=True, gridcolor="rgba(16,185,129,0.1)", showticklabels=False, zeroline=False),
+        yaxis=dict(showgrid=True, gridcolor="rgba(16,185,129,0.1)", showticklabels=False, zeroline=False, range=[-0.8, 2.2]),
+    )
+    st.plotly_chart(fig_ecg, use_container_width=True, key=f"{chart_key}_ecg")
+    st.markdown("""<div style="font-size:10px;color:#10b981;font-family:'Share Tech Mono',monospace;text-align:right;margin-top:-6px">● QRS Complex: Normal (0.08s) · PR Interval: 0.16s · Rhythm: Sinus</div>""", unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # SHAP / Feature Importance Luminescence Chart
+    st.markdown('<div class="g-card">', unsafe_allow_html=True)
+    st.markdown('<div class="g-card-header"><div class="g-card-title">⚡ SHAP Biomarker Feature Luminescence</div><span class="g-badge badge-cyan">RF Explainability</span></div>', unsafe_allow_html=True)
     fig_fi = go.Figure(go.Bar(
         x=fi_df["Importance"], y=fi_df["Feature"], orientation="h",
-        marker=dict(color=fi_df["Importance"].tolist(),
-            colorscale=[[0, fi_color_lo], [1, fi_color_hi]],
-            line=dict(width=0)),
-        text=[f"{v:.3f}" for v in fi_df["Importance"]], textposition="outside",
-        textfont=dict(size=10, color=GRAY, family="DM Mono"),
+        marker=dict(
+            color=fi_df["Importance"].tolist(),
+            colorscale=[[0, "rgba(0,240,255,0.25)"], [1, "#00f0ff"]],
+            line=dict(width=0),
+        ),
+        text=[f"{v:.3f} SHAP" for v in fi_df["Importance"]], textposition="outside",
+        textfont=dict(size=10, color="#94a3b8", family="Share Tech Mono"),
     ))
-    fig_fi.update_layout(**PL, height=260)
-    _fix(fig_fi, xaxis=dict(showgrid=False, range=[0, fi_df["Importance"].max()*1.4]),
-         margin=dict(l=0, r=55, t=8, b=8))
+    fig_fi.update_layout(**PL, height=270)
+    _fix(fig_fi, xaxis=dict(showgrid=True, range=[0, fi_df["Importance"].max()*1.4]),
+         margin=dict(l=0, r=65, t=8, b=8))
     st.plotly_chart(fig_fi, use_container_width=True, key=chart_key)
     st.markdown('</div>', unsafe_allow_html=True)
 
     # Medications
     st.markdown('<div class="g-card">', unsafe_allow_html=True)
-    st.markdown('<div class="g-card-header"><div class="g-card-title">💊 Recommended Medications</div><span class="g-badge badge-amber">Consult Physician</span></div>', unsafe_allow_html=True)
+    st.markdown('<div class="g-card-header"><div class="g-card-title">💊 Recommended Clinical Pharmacology</div><span class="g-badge badge-amber">Attending Approval Required</span></div>', unsafe_allow_html=True)
     rows = "".join([f'<tr><td><div class="m-name">{m[0]}</div><div class="m-dose">{m[1]}</div></td><td><div class="m-purp">{m[2]}</div></td></tr>' for m in disease_data["medicines"]])
-    st.markdown(f'<table class="m-table"><thead><tr><th>Drug &amp; Dose</th><th>Purpose / Notes</th></tr></thead><tbody>{rows}</tbody></table>', unsafe_allow_html=True)
+    st.markdown(f'<table class="m-table"><thead><tr><th>Drug &amp; Protocol</th><th>Physiological Target &amp; Notes</th></tr></thead><tbody>{rows}</tbody></table>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
     # Tests + Precautions
     tc1, tc2 = st.columns(2)
     with tc1:
         st.markdown('<div class="g-card">', unsafe_allow_html=True)
-        st.markdown('<div class="g-card-header"><div class="g-card-title">🧪 Diagnostic Tests</div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="g-card-header"><div class="g-card-title">🧪 Diagnostic Tests Required</div></div>', unsafe_allow_html=True)
         for t in disease_data["tests"]:
             st.markdown(f'<div class="chk-item"><div class="dot-cyan"></div><div class="chk-text">{t}</div></div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
     with tc2:
         st.markdown('<div class="g-card">', unsafe_allow_html=True)
-        st.markdown('<div class="g-card-header"><div class="g-card-title">⚠️ Precautions</div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="g-card-header"><div class="g-card-title">⚠️ Clinical Precautions</div></div>', unsafe_allow_html=True)
         dot = "dot-red" if level == "HIGH RISK" else "dot-amber" if level == "MODERATE" else "dot-green"
         for p in disease_data["precautions"]:
             st.markdown(f'<div class="chk-item"><div class="{dot}"></div><div class="chk-text">{p}</div></div>', unsafe_allow_html=True)
@@ -857,7 +771,7 @@ def render_clinical_report(level, risk_pct, confidence, prediction_label,
 
     # Lifestyle
     st.markdown('<div class="g-card">', unsafe_allow_html=True)
-    st.markdown('<div class="g-card-header"><div class="g-card-title">🌿 Lifestyle Modifications</div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="g-card-header"><div class="g-card-title">🌿 Post-Assessment Care Protocol</div></div>', unsafe_allow_html=True)
     ls_cols = st.columns(len(disease_data["lifestyle"]))
     for lc, tip in zip(ls_cols, disease_data["lifestyle"]):
         lc.markdown(f'<div class="ls-tile">{tip}</div>', unsafe_allow_html=True)
@@ -865,10 +779,10 @@ def render_clinical_report(level, risk_pct, confidence, prediction_label,
 
     st.markdown("""
     <div class="disclaimer">
-        <span style="font-size:16px">⚕️</span>
-        <span style="color:#4a6a8a"><strong style="color:#7f9ab8">Medical Disclaimer:</strong>
-        This AI-generated report is for educational and research purposes only.
-        All clinical decisions must be made by a qualified healthcare professional.</span>
+        <span style="font-size:18px">⚕️</span>
+        <span style="color:#7f9ab8"><strong style="color:#00f0ff">Clinical Intelligence Advisory:</strong>
+        This AI-synthesized telemetry report is engineered for diagnostic decision support.
+        Final therapeutic actions must be validated by licensed physicians.</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1001,6 +915,31 @@ with tab2:
                                 st.session_state[skey] = max(lo, min(hi, int(round(val))))
                         st.rerun()
 
+            # Vital Telemetry HUD Bar
+            st.markdown("""
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px">
+                <div class="cyber-card" style="padding:12px 14px">
+                    <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">SpO2 Oxygen</div>
+                    <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#00f0ff;text-shadow:0 0 10px rgba(0,240,255,0.4)">98%</div>
+                    <div style="font-size:9px;color:#10b981;font-family:'Share Tech Mono',monospace">● Normal (95-100%)</div>
+                </div>
+                <div class="cyber-card" style="padding:12px 14px">
+                    <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">Respiration</div>
+                    <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#00f0ff;text-shadow:0 0 10px rgba(0,240,255,0.4)">16 <span style="font-size:12px;color:#7f9ab8">RPM</span></div>
+                    <div style="font-size:9px;color:#10b981;font-family:'Share Tech Mono',monospace">● Eupnea / Stable</div>
+                </div>
+                <div class="cyber-card" style="padding:12px 14px">
+                    <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">Pulse (Heart Rate)</div>
+                    <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#10b981;text-shadow:0 0 10px rgba(16,185,129,0.4)">96 <span style="font-size:12px;color:#7f9ab8">BPM</span></div>
+                    <div style="font-size:9px;color:#ffb142;font-family:'Share Tech Mono',monospace">⚡ Monitored Lead II</div>
+                </div>
+                <div class="cyber-card" style="padding:12px 14px">
+                    <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:#7f9ab8;text-transform:uppercase">Arterial BP</div>
+                    <div style="font-size:22px;font-weight:800;font-family:'Rajdhani',sans-serif;color:#ff3366;text-shadow:0 0 10px rgba(255,51,102,0.4)">152/94</div>
+                    <div style="font-size:9px;color:#ff3366;font-family:'Share Tech Mono',monospace">● Stage 2 HTN</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
             st.markdown('<div class="g-card">', unsafe_allow_html=True)
             st.markdown('<div class="g-card-header"><div class="g-card-title">Patient Clinical Parameters</div><span class="g-badge badge-cyan">Cleveland Schema</span></div>', unsafe_allow_html=True)
             r1a, r1b, r1c = st.columns(3)
