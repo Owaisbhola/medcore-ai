@@ -102,9 +102,35 @@ st.markdown("""
   --text3:     #4a6a8a;
 }
 
-*, html, body, [class*="css"] {
-  font-family: 'DM Sans', sans-serif !important;
+* {
   box-sizing: border-box;
+}
+
+html, body, .stApp, [class*="css"] {
+  font-family: 'DM Sans', -apple-system, sans-serif !important;
+}
+
+/* Ensure Material Symbols / Icons render as icons and never as text */
+[data-testid*="Icon"],
+[data-testid*="icon"],
+[data-testid="stIconMaterial"],
+.material-symbols-rounded,
+.material-symbols-sharp,
+.material-symbols-outlined,
+.material-icons,
+[class*="material-symbols"] {
+  font-family: 'Material Symbols Rounded', 'Material Icons', sans-serif !important;
+  font-feature-settings: 'liga' 1 !important;
+  font-style: normal !important;
+  display: inline-block !important;
+}
+
+/* Remove the sidebar collapse button completely so keyboard_do never shows */
+button[data-testid="stSidebarCollapseButton"],
+button[data-testid="collapsedControl"],
+[data-testid="stSidebarHeader"] button {
+  display: none !important;
+  visibility: hidden !important;
 }
 
 .hud-font { font-family: 'Rajdhani', sans-serif !important; }
@@ -1320,12 +1346,9 @@ with tab3:
             ollama_model = None
             if backend.startswith("Ollama"):
                 pulled = rpx.ollama_list_models()
-                if pulled:
-                    ollama_model = st.selectbox("Local model", pulled, key="ocr_ollama_model")
-                else:
-                    st.info("Ollama is running but no models are pulled yet. Run e.g. `ollama pull llama3.1` in a terminal, then refresh.")
+                ollama_model = pulled[0] if pulled else "llama3"
 
-            if st.button("✨  Polish with AI", key="btn_ai_summary", disabled=(backend.startswith("Ollama") and not ollama_model)):
+            if st.button("✨  Polish with AI", key="btn_ai_summary"):
                 with st.spinner("Generating plain-language summary…"):
                     lang = st.session_state.get("ocr_summary_lang", "English")
                     if backend.startswith("Ollama"):
@@ -1591,7 +1614,7 @@ with tab5:
             if len(backend_options) > 1 else backend_options[0]
         if chat_backend.startswith("Ollama"):
             pulled = rpx.ollama_list_models()
-            chat_model = st.selectbox("Local model", pulled, key="chat_ollama_model") if pulled else None
+            chat_model = pulled[0] if pulled else "llama3"
     else:
         st.markdown(
             '<div style="color:#4a6a8a;font-size:11px;margin-bottom:8px">'
