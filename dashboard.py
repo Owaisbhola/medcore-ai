@@ -9,7 +9,14 @@ import os
 import re
 import sys
 
-# ─── Load environment variables (.env) so ANTHROPIC_API_KEY etc. are picked up ──
+st.set_page_config(
+    page_title="MedCore AI — Cyber Dark Glass HUD",
+    page_icon="🏥",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+# ─── Load environment variables (.env) so ANTHROPIC_API_KEY / GROQ_API_KEY are picked up ──
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -45,7 +52,7 @@ except ImportError:
 # ─── Load Models ──────────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-@st.cache_resource
+@st.cache_resource(show_spinner="⚡ Initializing MedCore Clinical AI Engines...")
 def load_models():
     def find(name):
         for p in [os.path.join(BASE_DIR, name), os.path.join(BASE_DIR, "models", name)]:
@@ -65,13 +72,6 @@ def _log_report_history(kind, label, detail=""):
         "label": label,
         "detail": detail,
     })
-
-st.set_page_config(
-    page_title="MedCore AI — Cyber Dark Glass HUD",
-    page_icon="🏥",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
 
 # ─── DESIGN SYSTEM: CYBER DARK GLASS HUD ──────────────────────────────────────
 # Obsidian midnight background (#050b14) + cyber-grid mesh + electric cyan/emerald/rose accents
