@@ -513,7 +513,70 @@ def stream_answer(
     """
     system, user, chunks = build_rag_prompt(question, parsed_result, k=k)
 
-    if backend == "ollama":
+    if backend == "groq":
+        import os
+        groq_key = os.environ.get("GROQ_API_KEY")
+        if groq_key:
+            try:
+                from groq import Groq
+                client = Groq(api_key=groq_key)
+                stream = client.chat.completions.create(
+                    model=model or "llama-3.1-8b-instant",
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
+                    temperature=0.3,
+                    max_tokens=600,
+                    stream=True,
+                )
+                for chunk in stream:
+                    content = chunk.choices[0].delta.content or ""
+                    if content:
+                        yield content
+                return
+            except Exception:
+                pass
+
+            try:
+                import requests
+                import json
+                resp = requests.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                    json={
+                        "model": model or "llama-3.1-8b-instant",
+                        "messages": [
+                            {"role": "system", "content": system},
+                            {"role": "user", "content": user},
+                        ],
+                        "temperature": 0.3,
+                        "max_tokens": 600,
+                        "stream": True,
+                    },
+                    timeout=30,
+                    stream=True,
+                )
+                if resp.status_code == 200:
+                    for line in resp.iter_lines():
+                        if line:
+                            decoded = line.decode("utf-8")
+                            if decoded.startswith("data: "):
+                                data_str = decoded[6:].strip()
+                                if data_str == "[DONE]":
+                                    return
+                                try:
+                                    chunk_json = json.loads(data_str)
+                                    token = chunk_json["choices"][0]["delta"].get("content", "")
+                                    if token:
+                                        yield token
+                                except Exception:
+                                    continue
+                    return
+            except Exception:
+                pass
+
+    elif backend == "ollama":
         try:
             import report_parser as rpx
         except ImportError:
@@ -594,7 +657,48 @@ def answer_question(
     """
     system, user, chunks = build_rag_prompt(question, parsed_result, k=k)
 
-    if backend == "ollama":
+    if backend == "groq":
+        import os
+        groq_key = os.environ.get("GROQ_API_KEY")
+        if groq_key:
+            try:
+                from groq import Groq
+                client = Groq(api_key=groq_key)
+                res = client.chat.completions.create(
+                    model=model or "llama-3.1-8b-instant",
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
+                    temperature=0.3,
+                    max_tokens=600,
+                )
+                return res.choices[0].message.content, chunks
+            except Exception:
+                pass
+
+            try:
+                import requests
+                resp = requests.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                    json={
+                        "model": model or "llama-3.1-8b-instant",
+                        "messages": [
+                            {"role": "system", "content": system},
+                            {"role": "user", "content": user},
+                        ],
+                        "temperature": 0.3,
+                        "max_tokens": 600,
+                    },
+                    timeout=25,
+                )
+                if resp.status_code == 200:
+                    return resp.json()["choices"][0]["message"]["content"], chunks
+            except Exception:
+                pass
+
+    elif backend == "ollama":
         try:
             import report_parser as rpx
         except ImportError:

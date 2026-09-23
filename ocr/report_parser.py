@@ -18,6 +18,28 @@ def _get_client() -> "anthropic.Anthropic":
     return _client
 
 
+# ── Groq (Ultra-fast cloud Llama-3, free tier) ─────────────────────────────────
+GROQ_AVAILABLE = bool(os.environ.get("GROQ_API_KEY"))
+_groq_client = None
+
+
+def _get_groq_client():
+    global _groq_client
+    if _groq_client is None:
+        try:
+            from groq import Groq
+            api_k = os.environ.get("GROQ_API_KEY")
+            if api_k:
+                _groq_client = Groq(api_key=api_k)
+        except ImportError:
+            _groq_client = None
+    return _groq_client
+
+
+def groq_is_available() -> bool:
+    return bool(os.environ.get("GROQ_API_KEY"))
+
+
 # ── Ollama (free, local, no API key) ───────────────────────────────────────────
 try:
     import requests
@@ -722,6 +744,59 @@ def ollama_full_summary(
         )
     except Exception as e:
         return f"Ollama summary failed: {e}"
+
+
+def groq_full_summary(
+    parsed_result: dict,
+    language: str = "English",
+    model: str = "llama-3.1-8b-instant",
+) -> str:
+    """
+    Generate an ultra-fast plain-language summary using Groq Cloud API (Free Meta Llama 3).
+    """
+    groq_key = os.environ.get("GROQ_API_KEY")
+    if not groq_key:
+        return "Groq API key not set — add GROQ_API_KEY to your environment variables."
+
+    system, user, all_values = _build_summary_prompt(parsed_result, language)
+    if not all_values:
+        return "No lab values detected. Please verify the report and try again."
+
+    client = _get_groq_client()
+    if client:
+        try:
+            res = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                temperature=0.3,
+                max_tokens=900,
+            )
+            return res.choices[0].message.content
+        except Exception:
+            pass
+
+    try:
+        resp = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                "temperature": 0.3,
+                "max_tokens": 900,
+            },
+            timeout=25,
+        )
+        resp.raise_for_status()
+        return resp.json()["choices"][0]["message"]["content"]
+    except Exception as e:
+        return f"Groq summary failed: {e}"
 
 
 

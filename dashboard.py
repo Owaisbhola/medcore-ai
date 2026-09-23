@@ -1330,14 +1330,17 @@ with tab3:
 
         # Optional: polish the summary with an LLM — free via a local Ollama model,
         # or via the paid Anthropic API if a key happens to be configured.
+        groq_ok = REPORT_PARSER_AVAILABLE and hasattr(rpx, "groq_is_available") and rpx.groq_is_available()
         ollama_up = REPORT_PARSER_AVAILABLE and rpx.ollama_is_running()
         claude_ok = REPORT_PARSER_AVAILABLE and rpx.CLAUDE_AVAILABLE and bool(os.environ.get("ANTHROPIC_API_KEY"))
 
-        if ollama_up or claude_ok:
+        if groq_ok or ollama_up or claude_ok:
             st.markdown("<br>", unsafe_allow_html=True)
             backend_options = []
+            if groq_ok:
+                backend_options.append("Groq Llama-3 (Cloud, Free)")
             if ollama_up:
-                backend_options.append("Ollama (local, free)")
+                backend_options.append("Ollama (Local/Ngrok)")
             if claude_ok:
                 backend_options.append("Claude API (paid)")
             backend = st.radio("Polish with AI using:", backend_options, horizontal=True, key="ocr_ai_backend") \
@@ -1351,7 +1354,9 @@ with tab3:
             if st.button("✨  Polish with AI", key="btn_ai_summary"):
                 with st.spinner("Generating plain-language summary…"):
                     lang = st.session_state.get("ocr_summary_lang", "English")
-                    if backend.startswith("Ollama"):
+                    if backend.startswith("Groq"):
+                        st.session_state["ocr_ai_summary"] = rpx.groq_full_summary(result, language=lang)
+                    elif backend.startswith("Ollama"):
                         st.session_state["ocr_ai_summary"] = rpx.ollama_full_summary(result, language=lang, model=ollama_model)
                     else:
                         st.session_state["ocr_ai_summary"] = rpx.ai_full_summary(result, language=lang)
@@ -1361,8 +1366,7 @@ with tab3:
         else:
             st.markdown(
                 '<div style="color:#4a6a8a;font-size:11px;margin-top:8px">'
-                '💡 Want an AI-polished write-up? Install <a href="https://ollama.com/download" style="color:#00d4ff">Ollama</a>, '
-                'run <code>ollama pull llama3.1</code>, and refresh this page — it\'s free and runs on your own machine.'
+                '💡 Want an AI-polished write-up? Add a free <code>GROQ_API_KEY</code> in Render or run Ollama locally.'
                 '</div>', unsafe_allow_html=True,
             )
 
@@ -1605,23 +1609,28 @@ with tab5:
                 "medications, diet, and lifestyle. For full free-form answers, set up Ollama (free, local) — "
                 "see the note below.")
 
+    groq_ok_chat = bool(os.environ.get("GROQ_API_KEY"))
+
     # Backend + model picker
-    backend_options = ["⚡ Fast Clinical Engine (Instant)"]
+    backend_options = []
+    if groq_ok_chat:
+        backend_options.append("🚀 Groq Cloud Llama-3 (Streaming 300 t/s)")
+    backend_options.append("⚡ Fast Clinical Engine (Instant)")
     if ollama_up_chat:
-        backend_options.append("🤖 Ollama Llama-3 (Streaming AI)")
+        backend_options.append("🤖 Ollama Llama-3 (Local/Ngrok)")
     if claude_ok_chat:
         backend_options.append("🧠 Claude API (Streaming)")
 
     chat_backend = st.radio("Intelligence Engine:", backend_options, horizontal=True, key="chat_backend_choice")
-    chat_model = "llama3"
+    chat_model = "llama-3.1-8b-instant" if chat_backend.startswith("🚀 Groq") else "llama3"
     if chat_backend.startswith("🤖 Ollama"):
         pulled = rpx.ollama_list_models()
         chat_model = pulled[0] if pulled else "llama3"
 
-    if not ollama_up_chat and not claude_ok_chat:
+    if not groq_ok_chat and not ollama_up_chat and not claude_ok_chat:
         st.markdown(
             '<div style="color:#4a6a8a;font-size:11px;margin-bottom:8px">'
-            '💡 Fast Clinical Engine active (< 0.05s response). For full free-form Llama 3 answers, start <a href="https://ollama.com/download" style="color:#00d4ff">Ollama</a> locally.'
+            '💡 Fast Clinical Engine active. To enable <b>Cloud Llama 3 (Free)</b>, add <code>GROQ_API_KEY</code> in Render Environment Variables.'
             '</div>', unsafe_allow_html=True,
         )
 
@@ -1647,7 +1656,10 @@ with tab5:
         with st.chat_message("assistant", avatar="🏥"):
             parsed_ctx = st.session_state.get("ocr_parsed_result")
             backend_key = "fast"
-            if chat_backend.startswith("🤖 Ollama"):
+            if chat_backend.startswith("🚀 Groq"):
+                backend_key = "groq"
+                chat_model = "llama-3.1-8b-instant"
+            elif chat_backend.startswith("🤖 Ollama"):
                 backend_key = "ollama"
             elif chat_backend.startswith("🧠 Claude"):
                 backend_key = "claude"
