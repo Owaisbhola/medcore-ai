@@ -449,52 +449,81 @@ def _generate_fast_clinical_response(question: str, chunks: list, parsed_result:
     if patient_matches:
         parts.append("**Patient Lab Findings:**\n" + "\n".join(patient_matches))
 
-    # Relevant Knowledge Base Chunks
-    if chunks and chunks[0].get("score", 0) > 0.08:
+    # 1. Diabetes & Glycemic Control & Diabetic Diet
+    if any(w in q for w in ["diabet", "sugar", "glucose", "hba1c", "insulin"]) or ("diet" in q and ("eat" in q or "food" in q)):
+        parts.append(
+            "**Diabetes Care & Clinical Nutritional Protocol:**\n"
+            "- **Glycemic Targets:** Fasting Blood Glucose normal is 70–99 mg/dL (target for diabetes: 80–130 mg/dL). HbA1c normal is < 5.7%; diabetes is diagnosed at ≥ 6.5%, with a general clinical management target of < 7.0%.\n\n"
+            "**🥗 What to Eat (Recommended Diet Plan):**\n"
+            "- **Non-Starchy Vegetables:** Leafy greens (spinach, kale), broccoli, cauliflower, bell peppers, cucumbers, and tomatoes.\n"
+            "- **Low-GI Whole Grains:** Steel-cut oats, quinoa, brown rice, barley, and whole-wheat roti in portion-controlled amounts.\n"
+            "- **Lean Proteins:** Boiled eggs, skinless chicken/fish (salmon, tuna), lentils, beans, chickpeas, and tofu.\n"
+            "- **Healthy Fats:** Extra virgin olive oil, avocados, almonds, walnuts, chia seeds, and flaxseeds.\n\n"
+            "**🚫 What NOT to Eat (Foods to Strictly Avoid):**\n"
+            "- **Sugary Beverages:** Sodas, packaged fruit juices, sweetened teas, and energy drinks.\n"
+            "- **Refined Carbohydrates:** White bread, pastries, sugary breakfast cereals, white flour (maida), and sweets.\n"
+            "- **Trans & Saturated Fats:** Deep-fried items, fast food, fatty cuts of meat, and palm oil.\n\n"
+            "**⚡ Key Precautions & Lifestyle Rules:**\n"
+            "- **Daily Foot Inspection:** Examine feet daily for cuts, blisters, or redness (due to diabetic neuropathy risk).\n"
+            "- **Consistent Physical Activity:** 30 minutes of brisk walking or aerobic exercise at least 5 days a week.\n"
+            "- **Routine Lab Monitoring:** Check HbA1c every 3 months and monitor fasting/post-meal glucose regularly.\n"
+            "- **Stay Hydrated:** Drink plenty of water and never skip prescribed insulin or oral hypoglycemics (metformin)."
+        )
+    # 2. Blood Pressure / Hypertension
+    elif any(w in q for w in ["blood pressure", "bp", "hypertension"]):
+        parts.append(
+            "**Blood Pressure Clinical Standards:**\n"
+            "- **Normal:** Under 120/80 mmHg\n"
+            "- **Elevated:** 120–129 mmHg systolic and < 80 diastolic\n"
+            "- **Stage 1 Hypertension:** 130–139 / 80–89 mmHg\n"
+            "- **Stage 2 Hypertension:** ≥ 140/90 mmHg\n\n"
+            "Management emphasizes dietary sodium restriction (< 2g/day), aerobic exercise, and physician-prescribed ACE-inhibitors or calcium channel blockers."
+        )
+    # 3. Cholesterol & Lipid Profile
+    elif any(w in q for w in ["cholesterol", "lipid", "ldl", "hdl", "triglyceride"]):
+        parts.append(
+            "**Lipid Profile Clinical Standards:**\n"
+            "- **Total Cholesterol:** Desirable < 200 mg/dL (Borderline: 200–239, High: ≥ 240)\n"
+            "- **LDL ('Bad') Cholesterol:** Optimal < 100 mg/dL (< 70 mg/dL for cardiac patients)\n"
+            "- **HDL ('Good') Cholesterol:** Protective > 60 mg/dL (Low/Risk: < 40 mg/dL)\n"
+            "- **Triglycerides:** Normal < 150 mg/dL\n\n"
+            "Primary interventions include dietary soluble fibre, Mediterranean nutrition, and statin therapy if indicated."
+        )
+    # 4. ECG & Cardiac Rhythm
+    elif any(w in q for w in ["ecg", "heart rate", "pulse", "arrhythmia", "bpm", "cardiac"]):
+        parts.append(
+            "**Cardiac Rhythm & ECG Guidance:**\n"
+            "- **Normal Resting Heart Rate:** 60 to 100 BPM.\n"
+            "- Resting heart rate > 100 BPM is termed sinus tachycardia, while < 60 BPM is bradycardia.\n"
+            "- In Lead II ECG monitoring, normal QRS complex duration is < 0.12s. ST depression > 1mm during stress indicates potential myocardial ischaemia."
+        )
+    # 5. Cancer & Oncology
+    elif any(w in q for w in ["cancer", "tumor", "tumour", "biopsy", "malignant", "benign", "oncology", "psa", "ca-125", "cea"]):
+        parts.append(
+            "**Oncology & Diagnostic Overview:**\n"
+            "- **Benign:** Non-cancerous cells that do not invade adjacent tissues or metastasize.\n"
+            "- **Malignant:** Cancerous cells capable of local tissue invasion and systemic spread; requires prompt oncology referral.\n"
+            "- Definitive diagnosis requires histology / Fine Needle Aspiration (FNA) or core biopsy alongside diagnostic imaging (Mammogram, CT, MRI)."
+        )
+    # 6. General Diet & Lifestyle
+    elif any(w in q for w in ["diet", "food", "eat", "weight", "nutrition", "exercise", "smoking"]):
+        parts.append(
+            "**Clinical Lifestyle & Nutrition Guidance:**\n"
+            "- **Cardiovascular Diet:** Emphasize leafy greens, legumes, whole grains, nuts, and cold-pressed olive oil.\n"
+            "- **Salt & Sodium:** Restrict sodium intake to under 2,000 mg (1 teaspoon of table salt) daily.\n"
+            "- **Physical Activity:** Aim for at least 150 minutes of moderate aerobic activity weekly.\n"
+            "- **Avoidances:** Limit processed meats, trans fats, refined sugars, and tobacco products."
+        )
+    # 7. Fallback to relevant chunk only if score is high
+    elif chunks and chunks[0].get("score", 0) > 0.16:
         top = chunks[0]
         parts.append(f"**Clinical Intelligence ({top['title']}):**\n{top['text']}")
-        if len(chunks) > 1 and chunks[1].get("score", 0) > 0.12:
-            parts.append(f"**Additional Context ({chunks[1]['title']}):**\n{chunks[1]['text']}")
     else:
-        # Common clinical topics if chunk score is low
-        if any(w in q for w in ["blood pressure", "bp", "hypertension"]):
-            parts.append(
-                "**Blood Pressure Clinical Standards:**\n"
-                "- **Normal:** Under 120/80 mmHg\n"
-                "- **Elevated:** 120–129 mmHg systolic and < 80 diastolic\n"
-                "- **Stage 1 Hypertension:** 130–139 / 80–89 mmHg\n"
-                "- **Stage 2 Hypertension:** ≥ 140/90 mmHg\n\n"
-                "Management emphasizes dietary sodium restriction (< 2g/day), aerobic exercise, and physician-prescribed ACE-inhibitors or calcium channel blockers."
-            )
-        elif any(w in q for w in ["cholesterol", "lipid", "ldl", "hdl", "triglyceride"]):
-            parts.append(
-                "**Lipid Profile Clinical Standards:**\n"
-                "- **Total Cholesterol:** Desirable < 200 mg/dL (Borderline: 200–239, High: ≥ 240)\n"
-                "- **LDL ('Bad') Cholesterol:** Optimal < 100 mg/dL (< 70 mg/dL for cardiac patients)\n"
-                "- **HDL ('Good') Cholesterol:** Protective > 60 mg/dL (Low/Risk: < 40 mg/dL)\n"
-                "- **Triglycerides:** Normal < 150 mg/dL\n\n"
-                "Primary interventions include dietary soluble fibre, Mediterranean nutrition, and statin therapy if indicated."
-            )
-        elif any(w in q for w in ["ecg", "heart rate", "pulse", "arrhythmia", "bpm"]):
-            parts.append(
-                "**Cardiac Rhythm & ECG Guidance:**\n"
-                "- **Normal Resting Heart Rate:** 60 to 100 BPM.\n"
-                "- Resting heart rate > 100 BPM is termed sinus tachycardia, while < 60 BPM is bradycardia.\n"
-                "- In Lead II ECG monitoring, normal QRS complex duration is < 0.12s. ST depression > 1mm during stress indicates potential myocardial ischaemia."
-            )
-        elif any(w in q for w in ["cancer", "tumor", "biopsy", "malignant", "benign"]):
-            parts.append(
-                "**Oncology & Diagnostic Overview:**\n"
-                "- **Benign:** Non-cancerous cells that do not invade adjacent tissues or metastasize.\n"
-                "- **Malignant:** Cancerous cells capable of local tissue invasion and systemic spread; requires prompt oncology referral.\n"
-                "- Definitive diagnosis requires histology / Fine Needle Aspiration (FNA) or core biopsy alongside diagnostic imaging (Mammogram, CT, MRI)."
-            )
-        else:
-            parts.append(
-                "I am monitoring your clinical telemetry. You can ask me to explain specific lab parameters "
-                "(e.g., Blood Pressure, Cholesterol, Troponin, HbA1c, CA-125), evaluate medications (Statins, Aspirin, Beta-blockers), "
-                "or interpret findings from your uploaded medical report."
-            )
+        parts.append(
+            "I am monitoring your clinical telemetry. You can ask me to explain specific lab parameters "
+            "(e.g., Blood Pressure, Cholesterol, Diabetes/HbA1c, Troponin, CA-125), evaluate medications, "
+            "or interpret findings from your uploaded medical report."
+        )
 
     parts.append("\n*Clinical Advisory: This guidance is educational. Any therapeutic changes must be confirmed with your attending doctor.*")
     return "\n\n".join(parts)
@@ -515,66 +544,62 @@ def stream_answer(
 
     if backend == "groq":
         import os
-        groq_key = os.environ.get("GROQ_API_KEY")
-        if groq_key:
-            try:
-                from groq import Groq
-                client = Groq(api_key=groq_key)
-                stream = client.chat.completions.create(
-                    model=model or "llama-3.1-8b-instant",
-                    messages=[
+        groq_key = (os.environ.get("GROQ_API_KEY") or "").strip()
+        if not groq_key:
+            yield "⚠️ **Groq API Key Missing:** Please add your `GROQ_API_KEY` in Render Environment Variables."
+            return
+
+        import requests, json
+        try:
+            resp = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                json={
+                    "model": model or "llama-3.1-8b-instant",
+                    "messages": [
                         {"role": "system", "content": system},
                         {"role": "user", "content": user},
                     ],
-                    temperature=0.3,
-                    max_tokens=600,
-                    stream=True,
+                    "temperature": 0.3,
+                    "max_tokens": 800,
+                    "stream": True,
+                },
+                timeout=12,
+                stream=True,
+            )
+            if resp.status_code == 401:
+                yield (
+                    "⚠️ **Invalid Groq API Key (401 Unauthorized):**\n\n"
+                    "The key in Render is incorrect or incomplete. Please go to [console.groq.com/keys](https://console.groq.com/keys), "
+                    "create a new API key, copy the complete `gsk_...` key, and update `GROQ_API_KEY` in Render."
                 )
-                for chunk in stream:
-                    content = chunk.choices[0].delta.content or ""
-                    if content:
-                        yield content
                 return
-            except Exception:
-                pass
+            elif resp.status_code != 200:
+                err_text = f"HTTP {resp.status_code}"
+                try:
+                    err_text = resp.json().get("error", {}).get("message", err_text)
+                except Exception:
+                    pass
+                yield f"⚠️ **Groq API Error:** {err_text}"
+                return
 
-            try:
-                import requests
-                import json
-                resp = requests.post(
-                    "https://api.groq.com/openai/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
-                    json={
-                        "model": model or "llama-3.1-8b-instant",
-                        "messages": [
-                            {"role": "system", "content": system},
-                            {"role": "user", "content": user},
-                        ],
-                        "temperature": 0.3,
-                        "max_tokens": 600,
-                        "stream": True,
-                    },
-                    timeout=30,
-                    stream=True,
-                )
-                if resp.status_code == 200:
-                    for line in resp.iter_lines():
-                        if line:
-                            decoded = line.decode("utf-8")
-                            if decoded.startswith("data: "):
-                                data_str = decoded[6:].strip()
-                                if data_str == "[DONE]":
-                                    return
-                                try:
-                                    chunk_json = json.loads(data_str)
-                                    token = chunk_json["choices"][0]["delta"].get("content", "")
-                                    if token:
-                                        yield token
-                                except Exception:
-                                    continue
-                    return
-            except Exception:
-                pass
+            for line in resp.iter_lines():
+                if line:
+                    decoded = line.decode("utf-8")
+                    if decoded.startswith("data: "):
+                        data_str = decoded[6:].strip()
+                        if data_str == "[DONE]":
+                            return
+                        try:
+                            chunk_json = json.loads(data_str)
+                            token = chunk_json["choices"][0]["delta"].get("content", "")
+                            if token:
+                                yield token
+                        except Exception:
+                            continue
+            return
+        except Exception as e:
+            yield f"⚠️ *(Groq cloud connection error: {e}. Switching to Fast Clinical Engine...)*\n\n"
 
     elif backend == "ollama":
         try:
@@ -659,44 +684,38 @@ def answer_question(
 
     if backend == "groq":
         import os
-        groq_key = os.environ.get("GROQ_API_KEY")
-        if groq_key:
-            try:
-                from groq import Groq
-                client = Groq(api_key=groq_key)
-                res = client.chat.completions.create(
-                    model=model or "llama-3.1-8b-instant",
-                    messages=[
+        groq_key = (os.environ.get("GROQ_API_KEY") or "").strip()
+        if not groq_key:
+            return "⚠️ Groq API key is missing. Add `GROQ_API_KEY` in Render Environment Variables.", chunks
+
+        import requests
+        try:
+            resp = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                json={
+                    "model": model or "llama-3.1-8b-instant",
+                    "messages": [
                         {"role": "system", "content": system},
                         {"role": "user", "content": user},
                     ],
-                    temperature=0.3,
-                    max_tokens=600,
-                )
-                return res.choices[0].message.content, chunks
-            except Exception:
-                pass
-
-            try:
-                import requests
-                resp = requests.post(
-                    "https://api.groq.com/openai/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
-                    json={
-                        "model": model or "llama-3.1-8b-instant",
-                        "messages": [
-                            {"role": "system", "content": system},
-                            {"role": "user", "content": user},
-                        ],
-                        "temperature": 0.3,
-                        "max_tokens": 600,
-                    },
-                    timeout=25,
-                )
-                if resp.status_code == 200:
-                    return resp.json()["choices"][0]["message"]["content"], chunks
-            except Exception:
-                pass
+                    "temperature": 0.3,
+                    "max_tokens": 800,
+                },
+                timeout=12,
+            )
+            if resp.status_code == 401:
+                return "⚠️ Invalid Groq API Key (401 Unauthorized). Please check your key at [console.groq.com/keys](https://console.groq.com/keys) and update `GROQ_API_KEY` in Render.", chunks
+            elif resp.status_code != 200:
+                err_msg = resp.text
+                try:
+                    err_msg = resp.json().get("error", {}).get("message", err_msg)
+                except Exception:
+                    pass
+                return f"⚠️ Groq API Error: {err_msg}", chunks
+            return resp.json()["choices"][0]["message"]["content"], chunks
+        except Exception as e:
+            pass
 
     elif backend == "ollama":
         try:

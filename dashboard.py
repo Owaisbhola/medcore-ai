@@ -1667,7 +1667,7 @@ with tab5:
             sources = []
             if RAG_AVAILABLE:
                 chunks = rag_chat.retrieve(user_input, k=3)
-                sources = [{"title": c["title"], "score": round(c["score"], 3)} for c in chunks if c.get("score", 0) > 0.08]
+                sources = [{"title": c["title"], "score": round(c["score"], 3)} for c in chunks if c.get("score", 0) > 0.16]
 
             if RAG_AVAILABLE:
                 stream_gen = rag_chat.stream_answer(
