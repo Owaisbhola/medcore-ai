@@ -19,7 +19,7 @@ def _get_client() -> "anthropic.Anthropic":
 
 
 # ── Groq (Ultra-fast cloud Llama-3, free tier) ─────────────────────────────────
-GROQ_AVAILABLE = bool(os.environ.get("GROQ_API_KEY"))
+GROQ_AVAILABLE = bool(os.environ.get("GROQ_API_KEY", "").strip())
 _groq_client = None
 
 
@@ -28,7 +28,7 @@ def _get_groq_client():
     if _groq_client is None:
         try:
             from groq import Groq
-            api_k = os.environ.get("GROQ_API_KEY")
+            api_k = os.environ.get("GROQ_API_KEY", "").strip()
             if api_k:
                 _groq_client = Groq(api_key=api_k)
         except ImportError:
@@ -37,7 +37,7 @@ def _get_groq_client():
 
 
 def groq_is_available() -> bool:
-    return bool(os.environ.get("GROQ_API_KEY"))
+    return bool(os.environ.get("GROQ_API_KEY", "").strip())
 
 
 # ── Ollama (free, local, no API key) ───────────────────────────────────────────

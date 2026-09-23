@@ -1609,7 +1609,7 @@ with tab5:
                 "medications, diet, and lifestyle. For full free-form answers, set up Ollama (free, local) — "
                 "see the note below.")
 
-    groq_ok_chat = bool(os.environ.get("GROQ_API_KEY"))
+    groq_ok_chat = bool(os.environ.get("GROQ_API_KEY", "").strip())
 
     # Backend + model picker
     backend_options = []
