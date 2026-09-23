@@ -523,8 +523,11 @@ def stream_answer(
             try:
                 import requests
                 import json
+                host_url = rpx.get_ollama_host() if hasattr(rpx, "get_ollama_host") else rpx.OLLAMA_HOST
+                headers = getattr(rpx, "OLLAMA_HEADERS", {"ngrok-skip-browser-warning": "true"})
                 resp = requests.post(
-                    f"{rpx.OLLAMA_HOST}/api/chat",
+                    f"{host_url}/api/chat",
+                    headers=headers,
                     json={
                         "model": model or "llama3",
                         "messages": [
@@ -539,7 +542,7 @@ def stream_answer(
                         },
                         "stream": True,
                     },
-                    timeout=20,
+                    timeout=40,
                     stream=True,
                 )
                 if resp.status_code == 200:
@@ -599,8 +602,11 @@ def answer_question(
         if rpx.ollama_is_running():
             try:
                 import requests
+                host_url = rpx.get_ollama_host() if hasattr(rpx, "get_ollama_host") else rpx.OLLAMA_HOST
+                headers = getattr(rpx, "OLLAMA_HEADERS", {"ngrok-skip-browser-warning": "true"})
                 resp = requests.post(
-                    f"{rpx.OLLAMA_HOST}/api/chat",
+                    f"{host_url}/api/chat",
+                    headers=headers,
                     json={
                         "model": model or "llama3",
                         "messages": [
@@ -615,7 +621,7 @@ def answer_question(
                         },
                         "stream": False,
                     },
-                    timeout=25,
+                    timeout=40,
                 )
                 resp.raise_for_status()
                 return resp.json()["message"]["content"], chunks

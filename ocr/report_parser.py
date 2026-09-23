@@ -25,26 +25,38 @@ try:
 except ImportError:
     REQUESTS_AVAILABLE = False
 
-OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+def get_ollama_host() -> str:
+    return os.environ.get("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
+
+OLLAMA_HOST = get_ollama_host()
+OLLAMA_HEADERS = {
+    "ngrok-skip-browser-warning": "true",
+    "User-Agent": "MedCoreAI/1.0",
+}
 
 
-def ollama_is_running(host: str = OLLAMA_HOST, timeout: float = 1.5) -> bool:
-    """Quick check whether a local Ollama server is up (used to decide whether to show the option)."""
+def ollama_is_running(host: str | None = None, timeout: float = 4.0) -> bool:
+    """Quick check whether an Ollama server is up (local or ngrok remote)."""
     if not REQUESTS_AVAILABLE:
         return False
+    target = (host or get_ollama_host()).rstrip("/")
     try:
-        r = requests.get(f"{host}/api/tags", timeout=timeout)
-        return r.status_code == 200
+        r = requests.get(f"{target}/api/tags", headers=OLLAMA_HEADERS, timeout=timeout)
+        if r.status_code == 200:
+            data = r.json()
+            return isinstance(data, dict) and "models" in data
+        return False
     except Exception:
         return False
 
 
-def ollama_list_models(host: str = OLLAMA_HOST) -> list:
-    """Return names of models currently pulled in the local Ollama install."""
+def ollama_list_models(host: str | None = None) -> list:
+    """Return names of models currently pulled in the Ollama install."""
     if not REQUESTS_AVAILABLE:
         return []
+    target = (host or get_ollama_host()).rstrip("/")
     try:
-        r = requests.get(f"{host}/api/tags", timeout=3)
+        r = requests.get(f"{target}/api/tags", headers=OLLAMA_HEADERS, timeout=6.0)
         r.raise_for_status()
         return [m["name"] for m in r.json().get("models", [])]
     except Exception:
@@ -690,6 +702,7 @@ def ollama_full_summary(
     try:
         resp = requests.post(
             f"{host}/api/chat",
+            headers=OLLAMA_HEADERS,
             json={
                 "model": model,
                 "messages": [
