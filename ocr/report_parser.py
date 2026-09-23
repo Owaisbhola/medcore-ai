@@ -749,14 +749,21 @@ def ollama_full_summary(
 def groq_full_summary(
     parsed_result: dict,
     language: str = "English",
-    model: str = "llama-3.1-8b-instant",
+    model: str = "llama-3.3-70b-versatile",
 ) -> str:
     """
     Generate an ultra-fast plain-language summary using Groq Cloud API (Free Meta Llama 3).
     """
-    groq_key = os.environ.get("GROQ_API_KEY")
+    groq_key = (os.environ.get("GROQ_API_KEY") or "").strip()
     if not groq_key:
         return "Groq API key not set — add GROQ_API_KEY to your environment variables."
+
+    if not model or model == "llama-3.1-8b-instant":
+        try:
+            import rag_chat
+            model = rag_chat.get_groq_active_model(groq_key)
+        except Exception:
+            model = "llama-3.3-70b-versatile"
 
     system, user, all_values = _build_summary_prompt(parsed_result, language)
     if not all_values:

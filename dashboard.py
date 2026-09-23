@@ -1622,7 +1622,7 @@ with tab5:
         backend_options.append("🧠 Claude API (Streaming)")
 
     chat_backend = st.radio("Intelligence Engine:", backend_options, horizontal=True, key="chat_backend_choice")
-    chat_model = "llama-3.1-8b-instant" if chat_backend.startswith("🚀 Groq") else "llama3"
+    chat_model = "llama-3.3-70b-versatile" if chat_backend.startswith("🚀 Groq") else "llama3"
     if chat_backend.startswith("🤖 Ollama"):
         pulled = rpx.ollama_list_models()
         chat_model = pulled[0] if pulled else "llama3"
@@ -1658,7 +1658,7 @@ with tab5:
             backend_key = "fast"
             if chat_backend.startswith("🚀 Groq"):
                 backend_key = "groq"
-                chat_model = "llama-3.1-8b-instant"
+                chat_model = "llama-3.3-70b-versatile"
             elif chat_backend.startswith("🤖 Ollama"):
                 backend_key = "ollama"
             elif chat_backend.startswith("🧠 Claude"):
