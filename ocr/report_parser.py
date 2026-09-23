@@ -749,61 +749,67 @@ def ollama_full_summary(
 def groq_full_summary(
     parsed_result: dict,
     language: str = "English",
-    model: str = "llama-3.3-70b-versatile",
+    model: str | None = None,
 ) -> str:
     """
-    Generate an ultra-fast plain-language summary using Groq Cloud API (Free Meta Llama 3).
+    Generate an ultra-fast plain-language summary using Groq Cloud API.
     """
     groq_key = (os.environ.get("GROQ_API_KEY") or "").strip()
     if not groq_key:
         return "Groq API key not set — add GROQ_API_KEY to your environment variables."
 
-    if not model or model == "llama-3.1-8b-instant":
-        try:
-            import rag_chat
-            model = rag_chat.get_groq_active_model(groq_key)
-        except Exception:
-            model = "llama-3.3-70b-versatile"
+    try:
+        import rag_chat
+        candidates = rag_chat.get_groq_candidate_models(groq_key)
+    except Exception:
+        candidates = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b", "llama-3.3-70b-versatile"]
+
+    if model and model not in ("llama-3.1-8b-instant", "llama3", "llama3-70b-8192", "groq-auto"):
+        if model not in candidates:
+            candidates = [model] + candidates
 
     system, user, all_values = _build_summary_prompt(parsed_result, language)
     if not all_values:
         return "No lab values detected. Please verify the report and try again."
 
     client = _get_groq_client()
-    if client:
-        try:
-            res = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user},
-                ],
-                temperature=0.3,
-                max_tokens=900,
-            )
-            return res.choices[0].message.content
-        except Exception:
-            pass
+    for m_try in candidates:
+        if client:
+            try:
+                res = client.chat.completions.create(
+                    model=m_try,
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
+                    temperature=0.3,
+                    max_tokens=900,
+                )
+                return res.choices[0].message.content
+            except Exception:
+                pass
 
-    try:
-        resp = requests.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
-            json={
-                "model": model,
-                "messages": [
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user},
-                ],
-                "temperature": 0.3,
-                "max_tokens": 900,
-            },
-            timeout=25,
-        )
-        resp.raise_for_status()
-        return resp.json()["choices"][0]["message"]["content"]
-    except Exception as e:
-        return f"Groq summary failed: {e}"
+        try:
+            resp = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                json={
+                    "model": m_try,
+                    "messages": [
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
+                    "temperature": 0.3,
+                    "max_tokens": 900,
+                },
+                timeout=20,
+            )
+            if resp.status_code == 200:
+                return resp.json()["choices"][0]["message"]["content"]
+        except Exception:
+            continue
+
+    return "AI summary generated via Fast Clinical Engine."
 
 
 

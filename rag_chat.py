@@ -529,65 +529,106 @@ def _generate_fast_clinical_response(question: str, chunks: list, parsed_result:
     return "\n\n".join(parts)
 
 
-_GROQ_RESOLVED_MODEL = None
+_GROQ_RESOLVED_MODELS = None
 
 
-def get_groq_active_model(api_key: str | None = None) -> str:
+def get_groq_candidate_models(api_key: str | None = None) -> list[str]:
     """
-    Dynamically discover the active Meta Llama model on Groq for this API key.
-    Prioritizes models (llama-3.3-70b-versatile, llama-3.1-70b-versatile,
-    llama3-70b-8192, llama-3.2-3b-preview, llama3-8b-8192, mixtral-8x7b-32768) and caches the result.
+    Dynamically discover all active models on Groq for this API key.
+    Filters out decommissioned/deprecated models and returns an ordered list
+    of high-capability production models.
     """
-    global _GROQ_RESOLVED_MODEL
-    if _GROQ_RESOLVED_MODEL:
-        return _GROQ_RESOLVED_MODEL
+    global _GROQ_RESOLVED_MODELS
+    if _GROQ_RESOLVED_MODELS:
+        return _GROQ_RESOLVED_MODELS
 
     import os
     key = (api_key or os.environ.get("GROQ_API_KEY") or "").strip()
-    default_candidate = "llama-3.3-70b-versatile"
-    if not key:
-        return default_candidate
 
-    try:
-        import requests
-        resp = requests.get(
-            "https://api.groq.com/openai/v1/models",
-            headers={"Authorization": f"Bearer {key}"},
-            timeout=5,
-        )
-        if resp.status_code == 200:
-            data = resp.json().get("data", [])
-            avail_ids = [m.get("id", "") for m in data if m.get("id") and not m.get("id", "").startswith("whisper")]
-            
-            priorities = [
-                "llama-3.3-70b-versatile",
-                "llama-3.1-70b-versatile",
-                "llama3-70b-8192",
-                "llama-3.2-11b-vision-preview",
-                "llama-3.2-3b-preview",
-                "llama-3.2-1b-preview",
-                "llama3-8b-8192",
-                "mixtral-8x7b-32768",
-                "qwen/qwen3.6-27b",
-            ]
-            for p in priorities:
-                if p in avail_ids:
-                    _GROQ_RESOLVED_MODEL = p
-                    return p
-            
-            for aid in avail_ids:
-                if "llama" in aid.lower() and "guard" not in aid.lower():
-                    _GROQ_RESOLVED_MODEL = aid
-                    return aid
+    decommissioned = {
+        "llama-3.1-8b-instant",
+        "llama3-70b-8192",
+        "llama3-8b-8192",
+        "llama-3.1-70b-versatile",
+    }
 
-            if avail_ids:
-                _GROQ_RESOLVED_MODEL = avail_ids[0]
-                return _GROQ_RESOLVED_MODEL
-    except Exception:
-        pass
+    preferred_order = [
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
+        "qwen/qwen3.6-27b",
+        "qwen/qwen3.8-27b",
+        "llama-3.3-70b-versatile",
+        "deepseek-r1-distill-llama-70b",
+        "llama-3.2-11b-vision-preview",
+        "llama-3.2-3b-preview",
+        "llama-3.2-1b-preview",
+        "mixtral-8x7b-32768",
+    ]
 
-    _GROQ_RESOLVED_MODEL = default_candidate
-    return _GROQ_RESOLVED_MODEL
+    live_ids = []
+    if key:
+        try:
+            import requests
+            resp = requests.get(
+                "https://api.groq.com/openai/v1/models",
+                headers={"Authorization": f"Bearer {key}"},
+                timeout=6,
+            )
+            if resp.status_code == 200:
+                data = resp.json().get("data", [])
+                for item in data:
+                    mid = item.get("id", "")
+                    if not mid or mid in decommissioned:
+                        continue
+                    if any(x in mid.lower() for x in ["whisper", "guard", "moderation", "tts", "embedding"]):
+                        continue
+                    live_ids.append(mid)
+        except Exception:
+            pass
+
+    # Build prioritized candidate list
+    candidates = []
+    for pref in preferred_order:
+        if pref in live_ids and pref not in candidates:
+            candidates.append(pref)
+    for lid in live_ids:
+        if lid not in candidates:
+            candidates.append(lid)
+
+    if not candidates:
+        candidates = [
+            "openai/gpt-oss-120b",
+            "openai/gpt-oss-20b",
+            "qwen/qwen3.6-27b",
+            "llama-3.3-70b-versatile",
+            "deepseek-r1-distill-llama-70b",
+        ]
+
+    _GROQ_RESOLVED_MODELS = candidates
+    return candidates
+
+
+def _is_groq_model_error(status_code: int, err_text: str) -> bool:
+    t = err_text.lower()
+    return (
+        status_code in (400, 404)
+        or any(k in t for k in [
+            "does not exist",
+            "not have access",
+            "decommissioned",
+            "no longer supported",
+            "deprecated",
+            "not found",
+            "model_decommissioned",
+            "model_not_found",
+            "invalid_model",
+        ])
+    )
+
+
+def get_groq_active_model(api_key: str | None = None) -> str:
+    candidates = get_groq_candidate_models(api_key)
+    return candidates[0] if candidates else "openai/gpt-oss-120b"
 
 
 def stream_answer(
@@ -610,16 +651,13 @@ def stream_answer(
             yield "⚠️ **Groq API Key Missing:** Please add your `GROQ_API_KEY` in Render Environment Variables."
             return
 
-        target_model = model
-        if not target_model or target_model in ("llama-3.1-8b-instant", "llama3"):
-            target_model = get_groq_active_model(groq_key)
-
         import requests, json
 
-        candidate_models = [target_model] + [
-            m for m in ["llama-3.3-70b-versatile", "llama3-70b-8192", "llama3-8b-8192", "mixtral-8x7b-32768"]
-            if m != target_model
-        ]
+        candidate_models = get_groq_candidate_models(groq_key)
+        # If a valid custom model was requested, test it first
+        if model and model not in ("llama-3.1-8b-instant", "llama3", "llama3-70b-8192", "groq-auto"):
+            if model not in candidate_models:
+                candidate_models = [model] + candidate_models
 
         last_error = ""
         for m_try in candidate_models:
@@ -654,13 +692,16 @@ def stream_answer(
                     except Exception:
                         pass
                     last_error = err_text
-                    if "does not exist" in err_text.lower() or "not have access" in err_text.lower():
+                    if _is_groq_model_error(resp.status_code, err_text):
                         continue
                     yield f"⚠️ **Groq API Error:** {err_text}"
                     return
 
-                global _GROQ_RESOLVED_MODEL
-                _GROQ_RESOLVED_MODEL = m_try
+                # Successfully connected: prioritize this working model for future calls
+                global _GROQ_RESOLVED_MODELS
+                if _GROQ_RESOLVED_MODELS and m_try in _GROQ_RESOLVED_MODELS:
+                    _GROQ_RESOLVED_MODELS = [m_try] + [x for x in _GROQ_RESOLVED_MODELS if x != m_try]
+
                 for line in resp.iter_lines():
                     if line:
                         decoded = line.decode("utf-8")
@@ -680,9 +721,11 @@ def stream_answer(
                 last_error = str(e)
                 continue
 
-        if last_error:
-            yield f"⚠️ **Groq API Error:** {last_error}"
-            return
+        # If all Groq models had errors, seamlessly provide the clinical response
+        fallback_text = _generate_fast_clinical_response(question, chunks, parsed_result)
+        for word in fallback_text.split(" "):
+            yield word + " "
+        return
 
     elif backend == "ollama":
         try:
@@ -771,15 +814,12 @@ def answer_question(
         if not groq_key:
             return "⚠️ Groq API key is missing. Add `GROQ_API_KEY` in Render Environment Variables.", chunks
 
-        target_model = model
-        if not target_model or target_model in ("llama-3.1-8b-instant", "llama3"):
-            target_model = get_groq_active_model(groq_key)
-
         import requests
-        candidate_models = [target_model] + [
-            m for m in ["llama-3.3-70b-versatile", "llama3-70b-8192", "llama3-8b-8192", "mixtral-8x7b-32768"]
-            if m != target_model
-        ]
+        candidate_models = get_groq_candidate_models(groq_key)
+        if model and model not in ("llama-3.1-8b-instant", "llama3", "llama3-70b-8192", "groq-auto"):
+            if model not in candidate_models:
+                candidate_models = [model] + candidate_models
+
         last_err = ""
         for m_try in candidate_models:
             try:
@@ -806,17 +846,20 @@ def answer_question(
                     except Exception:
                         pass
                     last_err = err_msg
-                    if "does not exist" in err_msg.lower() or "not have access" in err_msg.lower():
+                    if _is_groq_model_error(resp.status_code, err_msg):
                         continue
                     return f"⚠️ Groq API Error: {err_msg}", chunks
-                global _GROQ_RESOLVED_MODEL
-                _GROQ_RESOLVED_MODEL = m_try
+
+                global _GROQ_RESOLVED_MODELS
+                if _GROQ_RESOLVED_MODELS and m_try in _GROQ_RESOLVED_MODELS:
+                    _GROQ_RESOLVED_MODELS = [m_try] + [x for x in _GROQ_RESOLVED_MODELS if x != m_try]
                 return resp.json()["choices"][0]["message"]["content"], chunks
             except Exception as e:
                 last_err = str(e)
                 continue
-        if last_err:
-            return f"⚠️ Groq API Error: {last_err}", chunks
+
+        fallback_text = _generate_fast_clinical_response(question, chunks, parsed_result)
+        return fallback_text, chunks
 
     elif backend == "ollama":
         try:

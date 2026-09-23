@@ -1614,7 +1614,7 @@ with tab5:
     # Backend + model picker
     backend_options = []
     if groq_ok_chat:
-        backend_options.append("🚀 Groq Cloud Llama-3 (Streaming 300 t/s)")
+        backend_options.append("🚀 Groq Cloud AI (High-Speed Streaming)")
     backend_options.append("⚡ Fast Clinical Engine (Instant)")
     if ollama_up_chat:
         backend_options.append("🤖 Ollama Llama-3 (Local/Ngrok)")
@@ -1622,7 +1622,7 @@ with tab5:
         backend_options.append("🧠 Claude API (Streaming)")
 
     chat_backend = st.radio("Intelligence Engine:", backend_options, horizontal=True, key="chat_backend_choice")
-    chat_model = "llama-3.3-70b-versatile" if chat_backend.startswith("🚀 Groq") else "llama3"
+    chat_model = "groq-auto" if chat_backend.startswith("🚀 Groq") else "llama3"
     if chat_backend.startswith("🤖 Ollama"):
         pulled = rpx.ollama_list_models()
         chat_model = pulled[0] if pulled else "llama3"
@@ -1658,7 +1658,7 @@ with tab5:
             backend_key = "fast"
             if chat_backend.startswith("🚀 Groq"):
                 backend_key = "groq"
-                chat_model = "llama-3.3-70b-versatile"
+                chat_model = "groq-auto"
             elif chat_backend.startswith("🤖 Ollama"):
                 backend_key = "ollama"
             elif chat_backend.startswith("🧠 Claude"):
