@@ -1476,10 +1476,14 @@ with tab4:
                 return "color:#2ed573;font-weight:600"
             return ""
 
-        styled = fdf.style\
-            .applymap(color_status, subset=["Status"])\
-            .applymap(color_risk,   subset=["Heart Risk %","Cancer Risk %"])\
-            .format({"Heart Risk %":"{}%","Cancer Risk %":"{}%"})
+        styler = fdf.style
+        if hasattr(styler, "map"):
+            styled = styler.map(color_status, subset=["Status"]).map(color_risk, subset=["Heart Risk %","Cancer Risk %"])
+        elif hasattr(styler, "applymap"):
+            styled = styler.applymap(color_status, subset=["Status"]).applymap(color_risk, subset=["Heart Risk %","Cancer Risk %"])
+        else:
+            styled = styler
+        styled = styled.format({"Heart Risk %":"{}%","Cancer Risk %":"{}%"})
         st.dataframe(styled, use_container_width=True, height=480)
 
     # ── SUB-TAB 2: real SQLite-backed patient records (CRUD) ───────────────
