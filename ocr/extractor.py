@@ -288,8 +288,8 @@ PARAMETER_RULES = [
     {
         "key": "Fasting Blood Glucose",
         "patterns": [
-            r"(?:fasting\s+(?:blood\s+)?glucose|f\.?b\.?g\.?|fbs)(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)",
-            r"glucose\s*(?:\(fasting\))?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)",
+            r"(?:fasting\s+(?:blood\s+)?glucose|f\.?b\.?g\.?|fbs)(?:\s*\([^\)]*\))?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)",
+            r"(?<!average\s)(?<!plasma\s)(?<!estimated\s)\bglucose\s*(?:\(fasting\))?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)",
         ],
         "unit": "mg/dL", "normal": "70 – 99 mg/dL",
         "flag": lambda v: ("Critical" if v > 300 else "Diabetic" if v > 125 else "Pre-diabetic" if v > 99 else "Low" if v < 70 else "Normal"),
@@ -298,9 +298,9 @@ PARAMETER_RULES = [
     {
         "key": "HbA1c",
         "patterns": [
-            r"hba\s*1\s*c\)?(?:\s*\([^\)]*\))?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)",
-            r"(?:glycosylated|glycated)\s+h(?:a)?emoglobin(?:\s*\([^\)]*\))?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)",
-            r"\ba1c\)?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)",
+            r"(?<![a-zA-Z])(?:hba\s*1\s*c|glycosylated\s+h[aeo]*moglobin|glycated\s+h[aeo]*moglobin)(?:\s*\([^\)]*\))?\s*[:=\-]\s*(\d+\.?\d*)\s*%?",
+            r"(?<![a-zA-Z])(?:hba\s*1\s*c|glycosylated\s+h[aeo]*moglobin|glycated\s+h[aeo]*moglobin)(?:\s*\([^\)]*\))?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)\s*%?",
+            r"(?<![a-zA-Z])\ba1c\b(?:\s*\([^\)]*\))?\s*[:=\-]\s*(\d+\.?\d*)\s*%?",
         ],
         "unit": "%", "normal": "< 5.7%",
         "flag": lambda v: ("Critical" if v > 10.0 else "Diabetic" if v >= 6.5 else "Pre-diabetic" if v >= 5.7 else "Normal"),
@@ -309,7 +309,7 @@ PARAMETER_RULES = [
     {
         "key": "Estimated Average Glucose",
         "patterns": [
-            r"(?:estimated\s+(?:average\s+)?glucose|\beag\b)(?:\s*\([^\)]*\))?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)",
+            r"(?:estimated\s+(?:average\s+)?glucose|\beag\b|mean\s+(?:plasma\s+)?glucose|\bmpg\b)(?:\s*\([^\)]*\))?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)",
         ],
         "unit": "mg/dL", "normal": "< 126 mg/dL",
         "flag": lambda v: ("Critical" if v > 200 else "High" if v > 126 else "Normal"),

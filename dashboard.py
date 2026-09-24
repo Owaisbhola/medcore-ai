@@ -1224,9 +1224,13 @@ with tab3:
                 if groq_key:
                     try:
                         import base64, requests, io
-                        from PIL import Image
+                        from PIL import Image, ImageOps
 
                         img = Image.open(io.BytesIO(file_bytes)).convert("RGB")
+                        try:
+                            img = ImageOps.exif_transpose(img)
+                        except Exception:
+                            pass
                         max_dim = 1280
                         if max(img.size) > max_dim:
                             scale = max_dim / max(img.size)
@@ -1244,7 +1248,9 @@ with tab3:
                         ]
                         prompt = (
                             "Extract all medical tests, biomarkers, laboratory values, units, and reference ranges "
-                            "from this report image. Format each on its own line like 'Test Name: Value Unit (Reference Range)'. "
+                            "from this report image. If the image is rotated, sideways, or upside-down, read all text in its true upright orientation. "
+                            "Format each on its own line like 'Test Name: Value Unit (Reference Range)'. "
+                            "Pay special attention to final diagnostic result values such as HbA1c, Fasting Blood Glucose, eAG, MPG (Mean Plasma Glucose), Total Cholesterol, Troponin, PSA, CA-125. "
                             "Include all sections (CBC, Lipid Panel, Blood Glucose, Liver, Kidney, Oncology, Electrolytes)."
                         )
                         for v_model in vision_candidates:

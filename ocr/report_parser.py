@@ -221,7 +221,7 @@ def parse_lipid_panel(text: str) -> dict:
 
 def parse_cbc(text: str) -> dict:
     return {
-        "haemoglobin":        _find([r"(?:ha?emoglobin|\bhb\b|hgb)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "haemoglobin":        _find([r"(?<!glycosylated\s)(?<!glycated\s)\b(?:ha?emoglobin|\bhb\b|hgb)(?!\s*a\s*1\s*c)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
         "wbc":                _find([r"(?:wbc|white\s+blood\s+cell|tlc)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
         "rbc":                _find([r"(?:rbc|red\s+blood\s+cell)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
         "platelets":          _find([r"(?:platelet(?:s)?(?:\s*count)?|\bplt\b)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
@@ -245,15 +245,16 @@ def parse_cardiac(text: str) -> dict:
 def parse_metabolic(text: str) -> dict:
     return {
         "fasting_glucose":           _find([
-            r"(?:fasting\s+(?:blood\s+)?glucose|fbg|fbs)" + _VAL_SEP + r"(\d+\.?\d*)",
-            r"glucose\s*(?:\(fasting\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+            r"(?:fasting\s+(?:blood\s+)?glucose|fbg|fbs)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+            r"(?<!average\s)(?<!plasma\s)(?<!estimated\s)\bglucose\s*(?:\(fasting\))?" + _VAL_SEP + r"(\d+\.?\d*)",
         ], text),
         "hba1c":                     _find([
-            r"(?:hba\s*1\s*c|a1c|(?:glycosylated|glycated)\s+h[aeo]*moglobin)" + _VAL_SEP + r"(\d+\.?\d*)",
-            r"hba\s*1\s*c\)?(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+            r"(?<![a-zA-Z])(?:hba\s*1\s*c|glycosylated\s+h[aeo]*moglobin|glycated\s+h[aeo]*moglobin)(?:\s*\([^\)]*\))?\s*[:=\-]\s*(\d+\.?\d*)\s*%?",
+            r"(?<![a-zA-Z])(?:hba\s*1\s*c|glycosylated\s+h[aeo]*moglobin|glycated\s+h[aeo]*moglobin)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)\s*%?",
+            r"(?<![a-zA-Z])\ba1c\b(?:\s*\([^\)]*\))?\s*[:=\-]\s*(\d+\.?\d*)\s*%?",
         ], text),
         "estimated_average_glucose": _find([
-            r"(?:estimated\s+(?:average\s+)?glucose|\beag\b)" + _VAL_SEP + r"(\d+\.?\d*)",
+            r"(?:estimated\s+(?:average\s+)?glucose|\beag\b|mean\s+(?:plasma\s+)?glucose|\bmpg\b)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
         ], text),
         "creatinine":                _find([r"(?:serum\s+)?creatinine" + _VAL_SEP + r"(\d+\.?\d*)", r"s\.?\s*creat(?:inine)?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
         "urea":                      _find([r"(?:blood\s+urea|serum\s+urea|urea)" + _VAL_SEP + r"(\d+\.?\d*)", r"\bbun\b" + _VAL_SEP + r"(\d+\.?\d*)"], text),

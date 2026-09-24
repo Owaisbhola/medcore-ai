@@ -1077,13 +1077,13 @@ with tab3:
         st.markdown('<div class="g-card-header"><div class="g-card-title">🧪 Extracted Lab Values</div><span class="g-badge badge-green">NLP Parsed</span></div>', unsafe_allow_html=True)
 
         LAB_PARAMS = [
-            ("HbA1c",[r"hba\s*1\s*c\)?(?:\s*\([^\)]*\))?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"(?:glycos[a-z]*|glycat[a-z]*)\s*h[aeo]*moglobin(?:\s*\([^\)]*\))?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"\ba1c\)?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"%",0,5.7,6.5,"< 5.7%"),
-            ("Est. Avg Glucose",[r"(?:estimated\s+(?:average\s+)?glucose|\beag\b)(?:\s*\([^\)]*\))?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"mg/dL",0,100,126,"70-100 mg/dL"),
+            ("HbA1c",[r"(?<![a-zA-Z])(?:hba\s*1\s*c|glycos[a-z]*\s*hemo[a-z]*)(?:\s*\([^\)]*\))?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"(?<![a-zA-Z])\ba1c\b(?:\s*\([^\)]*\))?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"%",0,5.7,6.5,"< 5.7%"),
+            ("Est. Avg Glucose / MPG",[r"(?:estimated\s+(?:average\s+)?glucose|\beag\b|mean\s+(?:plasma\s+)?glucose|\bmpg\b)(?:\s*\([^\)]*\))?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"mg/dL",0,100,126,"70-100 mg/dL"),
             ("Cholesterol",[r"total\s+cholesterol[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"(?<![a-z])cholesterol[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"chol[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"mg/dL",0,200,240,"< 200 mg/dL"),
             ("LDL",[r"ldl[\s\-_]*(?:cholesterol|chol)?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"low\s+density[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"mg/dL",0,100,160,"< 100 mg/dL"),
             ("HDL",[r"hdl[\s\-_]*(?:cholesterol|chol)?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"high\s+density[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"mg/dL",40,999,999,"> 40 mg/dL"),
             ("Triglycerides",[r"triglycerides?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"trig[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"\btg[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"mg/dL",0,150,200,"< 150 mg/dL"),
-            ("Fasting Glucose",[r"fasting\s+(?:blood\s+)?glucose[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"(?:fbg|fbs|fasting\s+sugar)[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"blood\s+glucose[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"mg/dL",0,100,126,"70-100 mg/dL"),
+            ("Fasting Glucose",[r"(?:fasting\s+(?:blood\s+)?glucose|fbg|fbs)[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"(?<!average\s)(?<!plasma\s)(?<!estimated\s)\bglucose[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"mg/dL",0,100,126,"70-100 mg/dL"),
             ("Blood Pressure",[r"(?:blood\s*pressure|b\.?p\.?)[\s:=\-]+([0-9]{2,3})\s*/\s*[0-9]+",r"systolic[\s:=\-]+([0-9]{2,3})",r"sbp[\s:=\-]+([0-9]{2,3})"],"mmHg",0,120,140,"< 120/80 mmHg"),
             ("Haemoglobin",[r"h(?:a?e?)moglobin[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"(?<![a-z])hb[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"hgb[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"g/dL",12,17,999,"12-17 g/dL"),
             ("Heart Rate",[r"heart\s+rate[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"pulse[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"(?<![a-z])hr[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"bpm",60,100,999,"60-100 bpm"),
