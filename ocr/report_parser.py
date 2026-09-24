@@ -905,6 +905,64 @@ def generate_report_card(parsed_result: dict, language: str = "English") -> dict
     }
 
 
+def ai_extract_lab_values(text: str, api_key: str | None = None) -> dict:
+    """
+    Fallback LLM parser to extract structured lab values when regex encounters
+    unusual abbreviations, non-standard layouts, or OCR formatting.
+    """
+    import os, json, requests
+    key = (api_key or os.environ.get("GROQ_API_KEY") or "").strip()
+    if not key or len(text.strip()) < 15:
+        return {}
+
+    prompt = (
+        "Extract all medical lab test parameters and their numeric values from this text.\n"
+        "Return ONLY a single valid JSON dictionary mapping test name to numeric value.\n"
+        "Recognized keys include: total_cholesterol, ldl, hdl, triglycerides, fasting_glucose, hba1c, "
+        "systolic_bp, diastolic_bp, heart_rate, haemoglobin, wbc, rbc, platelets, creatinine, urea, uric_acid, "
+        "sodium, potassium, calcium, ca125, psa, cea, afp, alt, ast, bilirubin, albumin, tsh, ft4, vitamin_d, vitamin_b12.\n"
+        "Example output: {\"fasting_glucose\": 118, \"hba1c\": 6.1, \"total_cholesterol\": 268}\n\n"
+        f"TEXT:\n{text[:2500]}\n\n"
+        "JSON:"
+    )
+    try:
+        from rag_chat import get_groq_candidate_models
+        candidates = get_groq_candidate_models(key)
+    except Exception:
+        candidates = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.6-27b", "llama-3.3-70b-versatile"]
+
+    for model in candidates[:2]:
+        try:
+            resp = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                json={
+                    "model": model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.0,
+                    "max_tokens": 500,
+                },
+                timeout=8,
+            )
+            if resp.status_code == 200:
+                raw_json = resp.json()["choices"][0]["message"]["content"]
+                raw_json = re.sub(r"^```(?:json)?", "", raw_json.strip())
+                raw_json = re.sub(r"```$", "", raw_json.strip()).strip()
+                data = json.loads(raw_json)
+                if isinstance(data, dict):
+                    extracted = {}
+                    for k, v in data.items():
+                        try:
+                            extracted[k.lower().strip()] = float(v)
+                        except (ValueError, TypeError):
+                            pass
+                    if extracted:
+                        return extracted
+        except Exception:
+            continue
+    return {}
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # MAIN PUBLIC FUNCTION
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -949,6 +1007,12 @@ def parse_full_report(raw_text: str) -> dict:
     all_values: dict = {}
     for section_dict in parsed.values():
         all_values.update({k: v for k, v in section_dict.items() if v is not None})
+
+    # If regex found no values, invoke AI structured extraction fallback
+    if not all_values and len(raw_text.strip()) > 15:
+        ai_vals = ai_extract_lab_values(raw_text)
+        if ai_vals:
+            all_values.update(ai_vals)
 
     abnormal_flags = collect_abnormal_flags(all_values)
     prefill_heart  = build_heart_prefill(parsed)

@@ -1317,7 +1317,15 @@ with tab3:
         st.session_state["ocr_ai_summary"] = None  # reset any stale summary from a previous report
 
         if text_to_parse and REPORT_PARSER_AVAILABLE:
-            st.session_state["ocr_parsed_result"] = rpx.parse_full_report(text_to_parse)
+            parsed = rpx.parse_full_report(text_to_parse)
+            # If the uploaded file had no detectable lab values, but the user has text in the text area, use the pasted text!
+            if not parsed.get("all_values") and pasted_text.strip() and pasted_text.strip() != text_to_parse:
+                pasted_parsed = rpx.parse_full_report(pasted_text.strip())
+                if pasted_parsed.get("all_values"):
+                    parsed = pasted_parsed
+                    text_to_parse = pasted_text.strip()
+                    st.session_state["ocr_engine_msg"] = "✅ Extracted values from report text panel"
+            st.session_state["ocr_parsed_result"] = parsed
         elif text_to_parse:
             # Minimal fallback if report_parser.py isn't importable at all
             st.session_state["ocr_parsed_result"] = {
@@ -1347,12 +1355,17 @@ with tab3:
         if engine_msg:
             st.success(engine_msg)
 
+        raw_ocr_text = st.session_state.get("ocr_text_to_parse", "")
+        if raw_ocr_text and len(raw_ocr_text.strip()) > 5:
+            with st.expander("👁️ View Raw Extracted OCR Text", expanded=False):
+                st.code(raw_ocr_text.strip(), language="text")
+
         if result is None:
             st.markdown('<div style="text-align:center;padding:60px 20px;color:#4a6a8a;font-size:13px;font-family:DM Sans,sans-serif">Results will appear here after clicking Analyze</div>', unsafe_allow_html=True)
         else:
             all_values = result.get("all_values", {})
             if not all_values:
-                st.warning("No recognisable lab values found. Try format: `Cholesterol: 245 mg/dL` or `CA-125: 62 U/mL`")
+                st.warning("No recognisable lab values found. Click **📋 Load Sample** or paste lab report text into the box to test.")
             else:
                 report_type_label = {
                     "heart": "🫀 Heart / Cardiac panel", "cancer": "🔬 Cancer / Tumour marker panel",
