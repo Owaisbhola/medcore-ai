@@ -1213,7 +1213,7 @@ with tab3:
                     combined = "\n".join(extracted_pages).strip()
                     if len(combined) > 20:
                         text_to_parse = combined
-                        st.session_state["ocr_engine_msg"] = "✅ Extracted digital text from PDF"
+                        st.session_state["ocr_engine_msg"] = "OCR COMPLETED"
                         ocr_done = True
                 except Exception:
                     pass
@@ -1281,7 +1281,7 @@ with tab3:
                                     v_text = resp.json()["choices"][0]["message"]["content"]
                                     if v_text and len(v_text.strip()) > 15:
                                         text_to_parse = v_text.strip()
-                                        st.session_state["ocr_engine_msg"] = f"✅ OCR completed via Groq Cloud Vision AI ({v_model.split('/')[-1]})"
+                                        st.session_state["ocr_engine_msg"] = "OCR COMPLETED"
                                         ocr_done = True
                                         break
                             except Exception:
@@ -1296,7 +1296,7 @@ with tab3:
                     img    = PIL.Image.open(io.BytesIO(file_bytes))
                     reader = easyocr.Reader(["en"], verbose=False)
                     text_to_parse = " ".join(reader.readtext(np.array(img), detail=0))
-                    st.session_state["ocr_engine_msg"] = "✅ OCR completed with EasyOCR"
+                    st.session_state["ocr_engine_msg"] = "OCR COMPLETED"
                     ocr_done = True
                 except Exception:
                     pass
@@ -1307,7 +1307,7 @@ with tab3:
                     import pytesseract, PIL.Image, io
                     img = PIL.Image.open(io.BytesIO(file_bytes))
                     text_to_parse = pytesseract.image_to_string(img)
-                    st.session_state["ocr_engine_msg"] = "✅ OCR completed with Tesseract"
+                    st.session_state["ocr_engine_msg"] = "OCR COMPLETED"
                     ocr_done = True
                 except Exception:
                     pass
@@ -1330,7 +1330,7 @@ with tab3:
                 if pasted_parsed.get("all_values"):
                     parsed = pasted_parsed
                     text_to_parse = pasted_text.strip()
-                    st.session_state["ocr_engine_msg"] = "✅ Extracted values from report text panel"
+                    st.session_state["ocr_engine_msg"] = "OCR COMPLETED"
             st.session_state["ocr_parsed_result"] = parsed
         elif text_to_parse:
             # Minimal fallback if report_parser.py isn't importable at all
