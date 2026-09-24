@@ -206,40 +206,40 @@ def _find(patterns: list, text: str) -> float | None:
     return None
 
 
+_VAL_SEP = r"(?:[\s\)\:\=\-]|observed\s+value|result|reading|value|level)+"
+
+
 def parse_lipid_panel(text: str) -> dict:
     return {
-        "total_cholesterol": _find([r"(?:total\s+)?cholesterol(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"t\.?\s*chol(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "ldl":               _find([r"ldl(?:\s*cholesterol|-c)?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"low\s+density\s+lipoprotein(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "hdl":               _find([r"hdl(?:\s*cholesterol|-c)?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"high\s+density\s+lipoprotein(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "triglycerides":     _find([r"triglycerides?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"\btg\b(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "vldl":              _find([r"vldl(?:\s*cholesterol)?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
+        "total_cholesterol": _find([r"(?:total\s+)?cholesterol(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)", r"t\.?\s*chol(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "ldl":               _find([r"(?:ldl|low\s+density\s+lipoprotein)(?:\s*cholesterol|-c)?(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "hdl":               _find([r"(?:hdl|high\s+density\s+lipoprotein)(?:\s*cholesterol|-c)?(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "triglycerides":     _find([r"(?:triglycerides?|\btg\b)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "vldl":              _find([r"vldl(?:\s*cholesterol)?(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
     }
 
 
 def parse_cbc(text: str) -> dict:
     return {
-        "haemoglobin":       _find([r"ha?emoglobin(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"\bhb\b(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"hgb(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "wbc":               _find([r"(?:wbc|white\s+blood\s+cell|tlc)(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "rbc":               _find([r"(?:rbc|red\s+blood\s+cell)(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "platelets":         _find([r"platelet(?:s)?\s*(?:count)?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"\bplt\b(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "packed_cell_volume":_find([r"(?:pcv|hematocrit|haematocrit)(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "mcv":               _find([r"\bmcv\b(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "mch":               _find([r"\bmch\b(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
+        "haemoglobin":        _find([r"(?:ha?emoglobin|\bhb\b|hgb)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "wbc":                _find([r"(?:wbc|white\s+blood\s+cell|tlc)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "rbc":                _find([r"(?:rbc|red\s+blood\s+cell)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "platelets":          _find([r"(?:platelet(?:s)?(?:\s*count)?|\bplt\b)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "packed_cell_volume": _find([r"(?:pcv|hematocrit|haematocrit)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "mcv":                _find([r"\bmcv\b(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "mch":                _find([r"\bmch\b(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
     }
 
 
 def parse_cardiac(text: str) -> dict:
     return {
-        "systolic_bp":    _find([r"(?:blood\s*pressure|b\.?p\.?|systolic)(?:\s*[:=\-]\s*|\s+)(\d{2,3})\s*/\s*\d+", r"sbp(?:\s*[:=\-]\s*|\s+)(\d{2,3})"], text),
-        "diastolic_bp":   _find([r"(?:blood\s*pressure|b\.?p\.?)(?:\s*[:=\-]\s*|\s+)\d+\s*/\s*(\d{2,3})", r"dbp(?:\s*[:=\-]\s*|\s+)(\d{2,3})"], text),
-        "heart_rate":     _find([r"(?:heart\s+rate|h\.?r\.?|pulse)(?:\s*[:=\-]\s*|\s+)(\d+)"], text),
-        "troponin_i":     _find([r"troponin\s*[-\s]?i(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"ctni(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "bnp":            _find([r"(?:bnp|b-type\s+natriuretic)(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "creatine_kinase":_find([r"(?:creatine\s+kinase|ck|cpk)(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
+        "systolic_bp":    _find([r"(?:blood\s*pressure|b\.?p\.?|systolic)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d{2,3})\s*/\s*\d+", r"sbp(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d{2,3})"], text),
+        "diastolic_bp":   _find([r"(?:blood\s*pressure|b\.?p\.?)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"\d+\s*/\s*(\d{2,3})", r"dbp(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d{2,3})"], text),
+        "heart_rate":     _find([r"(?:heart\s+rate|h\.?r\.?|pulse)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+)"], text),
+        "troponin_i":     _find([r"(?:troponin\s*[-\s]?i|ctni)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "bnp":            _find([r"(?:bnp|nt[\s\-]?probnp|b-type\s+natriuretic)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "creatine_kinase":_find([r"(?:creatine\s+kinase|ck|cpk|ck[\s\-]?mb)(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
     }
-
-
-_VAL_SEP = r"(?:[\s\)\:\=\-]|observed\s+value|result|reading|value|level)+"
 
 
 def parse_metabolic(text: str) -> dict:
@@ -302,13 +302,34 @@ def parse_vitamins(text: str) -> dict:
 
 def parse_oncology(text: str) -> dict:
     return {
-        "psa":      _find([r"(?:total\s+)?psa(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"prostate\s+specific\s+antigen(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "ca125":    _find([r"ca[\s\-]?125(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "ca19_9":   _find([r"ca[\s\-]?19[\s\-]?9(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "ca15_3":   _find([r"ca[\s\-]?15[\s\-]?3(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "cea":      _find([r"\bcea\b(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"carcinoembryonic\s+antigen(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "afp":      _find([r"\bafp\b(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"alpha[\s\-]?fetoprotein(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "beta_hcg": _find([r"beta[\s\-]?hcg(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"\bhcg\b(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
+        "psa":      _find([
+            r"(?:total\s+)?psa(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+            r"prostate\s+specific\s+antigen(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+        ], text),
+        "ca125":    _find([
+            r"ca[\s\-]?125(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+            r"cancer\s+antigen\s*125(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+        ], text),
+        "ca19_9":   _find([
+            r"ca[\s\-]?19[\s\-]?9(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+            r"carbohydrate\s+antigen\s*19[\s\-]?9(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+        ], text),
+        "ca15_3":   _find([
+            r"ca[\s\-]?15[\s\-]?3(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+            r"cancer\s+antigen\s*15[\s\-]?3(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+        ], text),
+        "cea":      _find([
+            r"\bcea\b(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+            r"carcinoembryonic\s+antigen(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+        ], text),
+        "afp":      _find([
+            r"\bafp\b(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+            r"alpha[\s\-]?fetoprotein(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+        ], text),
+        "beta_hcg": _find([
+            r"beta[\s\-]?hcg(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+            r"\bhcg\b(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+        ], text),
     }
 
 
