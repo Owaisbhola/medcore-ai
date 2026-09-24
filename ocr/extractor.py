@@ -298,11 +298,21 @@ PARAMETER_RULES = [
     {
         "key": "HbA1c",
         "patterns": [
-            r"hba1c(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)\s*%?",
-            r"a1c(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)",
+            r"hba\s*1\s*c\)?(?:\s*\([^\)]*\))?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)",
+            r"(?:glycosylated|glycated)\s+h(?:a)?emoglobin(?:\s*\([^\)]*\))?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)",
+            r"\ba1c\)?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)",
         ],
         "unit": "%", "normal": "< 5.7%",
-        "flag": lambda v: ("Diabetic" if v >= 6.5 else "Pre-diabetic" if v >= 5.7 else "Normal"),
+        "flag": lambda v: ("Critical" if v > 10.0 else "Diabetic" if v >= 6.5 else "Pre-diabetic" if v >= 5.7 else "Normal"),
+        "heart_feature": None,
+    },
+    {
+        "key": "Estimated Average Glucose",
+        "patterns": [
+            r"(?:estimated\s+(?:average\s+)?glucose|\beag\b)(?:\s*\([^\)]*\))?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)",
+        ],
+        "unit": "mg/dL", "normal": "< 126 mg/dL",
+        "flag": lambda v: ("Critical" if v > 200 else "High" if v > 126 else "Normal"),
         "heart_feature": None,
     },
     {

@@ -1077,8 +1077,8 @@ with tab3:
         st.markdown('<div class="g-card-header"><div class="g-card-title">🧪 Extracted Lab Values</div><span class="g-badge badge-green">NLP Parsed</span></div>', unsafe_allow_html=True)
 
         LAB_PARAMS = [
-            ("HbA1c",[r"hba\s*1\s*c[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"glycos[a-z]*\s*hemo[a-z]*[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"a1c[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"%",0,5.7,6.5,"< 5.7%"),
-            ("Est. Avg Glucose",[r"estimated\s+average\s+glucose[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"eag[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"mg/dL",0,100,126,"70-100 mg/dL"),
+            ("HbA1c",[r"hba\s*1\s*c\)?(?:\s*\([^\)]*\))?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"(?:glycos[a-z]*|glycat[a-z]*)\s*h[aeo]*moglobin(?:\s*\([^\)]*\))?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"\ba1c\)?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"%",0,5.7,6.5,"< 5.7%"),
+            ("Est. Avg Glucose",[r"(?:estimated\s+(?:average\s+)?glucose|\beag\b)(?:\s*\([^\)]*\))?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"mg/dL",0,100,126,"70-100 mg/dL"),
             ("Cholesterol",[r"total\s+cholesterol[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"(?<![a-z])cholesterol[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"chol[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"mg/dL",0,200,240,"< 200 mg/dL"),
             ("LDL",[r"ldl[\s\-_]*(?:cholesterol|chol)?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"low\s+density[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"mg/dL",0,100,160,"< 100 mg/dL"),
             ("HDL",[r"hdl[\s\-_]*(?:cholesterol|chol)?[\s:=\-]+([0-9]+(?:\.[0-9]+)?)",r"high\s+density[\s:=\-]+([0-9]+(?:\.[0-9]+)?)"],"mg/dL",40,999,999,"> 40 mg/dL"),

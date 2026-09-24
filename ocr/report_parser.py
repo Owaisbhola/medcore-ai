@@ -8,7 +8,6 @@ try:
     CLAUDE_AVAILABLE = True
 except ImportError:
     CLAUDE_AVAILABLE = False
-    print("⚠  anthropic not installed  →  pip install anthropic")
 
 
 def _get_client() -> "anthropic.Anthropic":
@@ -240,15 +239,27 @@ def parse_cardiac(text: str) -> dict:
     }
 
 
+_VAL_SEP = r"(?:[\s\)\:\=\-]|observed\s+value|result|reading|value|level)+"
+
+
 def parse_metabolic(text: str) -> dict:
     return {
-        "fasting_glucose": _find([r"(?:fasting\s+(?:blood\s+)?glucose|fbg|fbs)(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"glucose\s*(?:\(fasting\))?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "hba1c":           _find([r"hba1c(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)\s*%?", r"a1c(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "creatinine":      _find([r"(?:serum\s+)?creatinine(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"s\.?\s*creat(?:inine)?(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "urea":            _find([r"(?:blood\s+urea|serum\s+urea|urea)(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"\bbun\b(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "uric_acid":       _find([r"uric\s+acid(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"s\.?\s*urate(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "sodium":          _find([r"(?:serum\s+)?sodium(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"\bna\+?\b(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
-        "potassium":       _find([r"(?:serum\s+)?potassium(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)", r"\bk\+?\b(?:\s*[:=\-]\s*|\s+)(\d+\.?\d*)"], text),
+        "fasting_glucose":           _find([
+            r"(?:fasting\s+(?:blood\s+)?glucose|fbg|fbs)" + _VAL_SEP + r"(\d+\.?\d*)",
+            r"glucose\s*(?:\(fasting\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+        ], text),
+        "hba1c":                     _find([
+            r"(?:hba\s*1\s*c|a1c|(?:glycosylated|glycated)\s+h[aeo]*moglobin)" + _VAL_SEP + r"(\d+\.?\d*)",
+            r"hba\s*1\s*c\)?(?:\s*\([^\)]*\))?" + _VAL_SEP + r"(\d+\.?\d*)",
+        ], text),
+        "estimated_average_glucose": _find([
+            r"(?:estimated\s+(?:average\s+)?glucose|\beag\b)" + _VAL_SEP + r"(\d+\.?\d*)",
+        ], text),
+        "creatinine":                _find([r"(?:serum\s+)?creatinine" + _VAL_SEP + r"(\d+\.?\d*)", r"s\.?\s*creat(?:inine)?" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "urea":                      _find([r"(?:blood\s+urea|serum\s+urea|urea)" + _VAL_SEP + r"(\d+\.?\d*)", r"\bbun\b" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "uric_acid":                 _find([r"uric\s+acid" + _VAL_SEP + r"(\d+\.?\d*)", r"s\.?\s*urate" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "sodium":                    _find([r"(?:serum\s+)?sodium" + _VAL_SEP + r"(\d+\.?\d*)", r"\bna\+?\b" + _VAL_SEP + r"(\d+\.?\d*)"], text),
+        "potassium":                 _find([r"(?:serum\s+)?potassium" + _VAL_SEP + r"(\d+\.?\d*)", r"\bk\+?\b" + _VAL_SEP + r"(\d+\.?\d*)"], text),
     }
 
 
@@ -326,9 +337,10 @@ NORMAL_RANGES = {
     "troponin_i":           (0,    0.04,  "ng/mL",           "< 0.04"),
     "bnp":                  (0,    100,   "pg/mL",           "< 100"),
     # Metabolic
-    "fasting_glucose":      (70,   99,    "mg/dL",           "70–99"),
-    "hba1c":                (0,    5.6,   "%",               "< 5.7"),
-    "creatinine":           (0.7,  1.2,   "mg/dL",           "0.7–1.2"),
+    "fasting_glucose":           (70,   99,    "mg/dL",           "70–99"),
+    "hba1c":                     (0,    5.6,   "%",               "< 5.7"),
+    "estimated_average_glucose": (70,   126,   "mg/dL",           "< 126"),
+    "creatinine":                (0.7,  1.2,   "mg/dL",           "0.7–1.2"),
     "urea":                 (7,    20,    "mg/dL",           "7–20"),
     "uric_acid":            (3.5,  7.2,   "mg/dL",           "3.5–7.2"),
     "sodium":               (136,  145,   "mEq/L",           "136–145"),
@@ -511,6 +523,7 @@ _REPORT_TYPE_KEYWORDS = {
     ],
     "diabetes": [
         "glucose", "hba1c", "a1c", "diabetic", "diabetes", "insulin",
+        "glycosylated", "glycated", "eag", "sugar",
     ],
 }
 
@@ -918,7 +931,7 @@ def ai_extract_lab_values(text: str, api_key: str | None = None) -> dict:
     prompt = (
         "Extract all medical lab test parameters and their numeric values from this text.\n"
         "Return ONLY a single valid JSON dictionary mapping test name to numeric value.\n"
-        "Recognized keys include: total_cholesterol, ldl, hdl, triglycerides, fasting_glucose, hba1c, "
+        "Recognized keys include: total_cholesterol, ldl, hdl, triglycerides, fasting_glucose, hba1c, estimated_average_glucose, "
         "systolic_bp, diastolic_bp, heart_rate, haemoglobin, wbc, rbc, platelets, creatinine, urea, uric_acid, "
         "sodium, potassium, calcium, ca125, psa, cea, afp, alt, ast, bilirubin, albumin, tsh, ft4, vitamin_d, vitamin_b12.\n"
         "Example output: {\"fasting_glucose\": 118, \"hba1c\": 6.1, \"total_cholesterol\": 268}\n\n"
