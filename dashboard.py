@@ -1155,13 +1155,42 @@ with tab3:
         st.markdown('<div class="g-card-header"><div class="g-card-title">📤 Upload or Paste Report</div><span class="g-badge badge-cyan">OCR + NLP</span></div>', unsafe_allow_html=True)
         uploaded_file = st.file_uploader("Upload report (PDF / JPG / PNG)", type=["pdf","jpg","png","jpeg"])
         st.markdown("<div style='text-align:center;font-size:11px;color:#4a6a8a;margin:8px 0;font-family:DM Mono,monospace'>— or paste text below —</div>", unsafe_allow_html=True)
-        pasted_text = st.text_area("Paste report text here", height=220,
+        default_val = st.session_state.get("pasted_report_text", "")
+        pasted_text = st.text_area("Paste report text here", value=default_val, height=200,
             placeholder="Cholesterol: 268 mg/dL\nBlood Pressure: 142/88 mmHg\nFasting Blood Glucose: 118 mg/dL\nHbA1c: 6.1 %\nCA-125: 62 U/mL\nPSA: 5.4 ng/mL\nHaemoglobin: 13.4 g/dL\nHeart Rate: 88 bpm\nLDL: 162 mg/dL\nHDL: 38 mg/dL\nTriglycerides: 210 mg/dL")
         summary_lang = st.selectbox(
             "AI summary language", ["English", "Hindi", "Gujarati", "Marathi", "Tamil", "Telugu", "Bengali"],
             key="ocr_summary_lang",
         )
-        run_ocr = st.button("🔍  Analyze Report", key="btn_ocr")
+        c_btn1, c_btn2 = st.columns([1.2, 1])
+        with c_btn1:
+            run_ocr = st.button("🔍  Analyze Report", key="btn_ocr", use_container_width=True)
+        with c_btn2:
+            load_sample = st.button("📋  Load Sample", key="btn_sample", use_container_width=True, help="Load ready-to-test blood panel values")
+
+        if load_sample:
+            st.session_state["pasted_report_text"] = (
+                "Complete Blood Count & Metabolic Health Panel\n"
+                "Patient: Demo Patient | Age: 52 | Sex: Male\n"
+                "--------------------------------------------------\n"
+                "Fasting Blood Glucose: 118 mg/dL (Normal: 70 - 99 mg/dL)\n"
+                "HbA1c: 6.1 % (Normal: 4.0 - 5.6 %)\n"
+                "Total Cholesterol: 268 mg/dL (Normal: < 200 mg/dL)\n"
+                "LDL Cholesterol: 162 mg/dL (Normal: < 100 mg/dL)\n"
+                "HDL Cholesterol: 38 mg/dL (Normal: > 40 mg/dL)\n"
+                "Triglycerides: 210 mg/dL (Normal: < 150 mg/dL)\n"
+                "Blood Pressure: 142/88 mmHg (Normal: < 120/80 mmHg)\n"
+                "Heart Rate: 88 bpm (Normal: 60 - 100 bpm)\n"
+                "Haemoglobin: 13.4 g/dL (Normal: 13.8 - 17.2 g/dL)\n"
+                "CA-125: 62 U/mL (Normal: < 35 U/mL)\n"
+                "PSA: 5.4 ng/mL (Normal: < 4.0 ng/mL)\n"
+                "Creatinine: 1.1 mg/dL (Normal: 0.7 - 1.3 mg/dL)\n"
+                "Estimated GFR: 78 mL/min/1.73m2 (Normal: > 90)\n"
+                "Serum Potassium: 4.6 mEq/L (Normal: 3.5 - 5.0 mEq/L)\n"
+                "Serum Sodium: 140 mEq/L (Normal: 135 - 145 mEq/L)"
+            )
+            st.rerun()
+
         st.markdown('</div>', unsafe_allow_html=True)
 
     # ── Run OCR + parsing once per click, cache result in session_state ──────
@@ -1171,6 +1200,90 @@ with tab3:
             file_bytes = uploaded_file.read()
             ocr_done   = False
 
+            # 1. Digital PDF extraction if it is a PDF
+            if uploaded_file.name.lower().endswith(".pdf"):
+                try:
+                    import pypdf, io
+                    reader = pypdf.PdfReader(io.BytesIO(file_bytes))
+                    extracted_pages = []
+                    for page in reader.pages:
+                        ptxt = page.extract_text()
+                        if ptxt:
+                            extracted_pages.append(ptxt)
+                    combined = "\n".join(extracted_pages).strip()
+                    if len(combined) > 20:
+                        text_to_parse = combined
+                        st.session_state["ocr_engine_msg"] = "✅ Extracted digital text from PDF"
+                        ocr_done = True
+                except Exception:
+                    pass
+
+            # 2. Groq Cloud Vision AI (Uses your GROQ_API_KEY, 0.8s ultra-accurate OCR)
+            if not ocr_done:
+                groq_key = (os.environ.get("GROQ_API_KEY") or "").strip()
+                if groq_key:
+                    try:
+                        import base64, requests, io
+                        from PIL import Image
+
+                        img = Image.open(io.BytesIO(file_bytes)).convert("RGB")
+                        max_dim = 1280
+                        if max(img.size) > max_dim:
+                            scale = max_dim / max(img.size)
+                            new_size = (int(img.width * scale), int(img.height * scale))
+                            img = img.resize(new_size, Image.Resampling.LANCZOS)
+
+                        buf = io.BytesIO()
+                        img.save(buf, format="JPEG", quality=85)
+                        b64_img = base64.b64encode(buf.getvalue()).decode("utf-8")
+
+                        vision_candidates = [
+                            "qwen/qwen3.8-27b",
+                            "llama-3.2-11b-vision-preview",
+                            "llama-3.2-90b-vision-preview",
+                        ]
+                        prompt = (
+                            "Extract all medical tests, biomarkers, laboratory values, units, and reference ranges "
+                            "from this report image. Format each on its own line like 'Test Name: Value Unit (Reference Range)'. "
+                            "Include all sections (CBC, Lipid Panel, Blood Glucose, Liver, Kidney, Oncology, Electrolytes)."
+                        )
+                        for v_model in vision_candidates:
+                            try:
+                                resp = requests.post(
+                                    "https://api.groq.com/openai/v1/chat/completions",
+                                    headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                                    json={
+                                        "model": v_model,
+                                        "messages": [
+                                            {
+                                                "role": "user",
+                                                "content": [
+                                                    {"type": "text", "text": prompt},
+                                                    {
+                                                        "type": "image_url",
+                                                        "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"},
+                                                    },
+                                                ],
+                                            }
+                                        ],
+                                        "temperature": 0.1,
+                                        "max_tokens": 1200,
+                                    },
+                                    timeout=20,
+                                )
+                                if resp.status_code == 200:
+                                    v_text = resp.json()["choices"][0]["message"]["content"]
+                                    if v_text and len(v_text.strip()) > 15:
+                                        text_to_parse = v_text.strip()
+                                        st.session_state["ocr_engine_msg"] = f"✅ OCR completed via Groq Cloud Vision AI ({v_model.split('/')[-1]})"
+                                        ocr_done = True
+                                        break
+                            except Exception:
+                                continue
+                    except Exception:
+                        pass
+
+            # 3. Local EasyOCR (if available)
             if not ocr_done:
                 try:
                     import easyocr, PIL.Image, io
@@ -1182,6 +1295,7 @@ with tab3:
                 except Exception:
                     pass
 
+            # 4. Local Tesseract (if available)
             if not ocr_done:
                 try:
                     import pytesseract, PIL.Image, io
@@ -1194,7 +1308,10 @@ with tab3:
 
             if not ocr_done:
                 st.session_state["ocr_engine_msg"] = None
-                st.warning("⚠ Could not read image automatically. Install easyocr (pip install easyocr) or paste the report text manually.")
+                st.warning("⚠ Could not read image automatically. Please paste report text in the box below or click '📋 Load Sample' to test.")
+
+        if not text_to_parse and uploaded_file is None:
+            st.info("ℹ️ Please upload a report image/PDF or paste your lab report text above (or click '📋 Load Sample').")
 
         st.session_state["ocr_text_to_parse"] = text_to_parse
         st.session_state["ocr_ai_summary"] = None  # reset any stale summary from a previous report
