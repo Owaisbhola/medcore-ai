@@ -1197,8 +1197,13 @@ with tab3:
     if run_ocr:
         text_to_parse = pasted_text.strip()
         if uploaded_file is not None:
-            file_bytes = uploaded_file.read()
-            ocr_done   = False
+            file_bytes = uploaded_file.getvalue() if hasattr(uploaded_file, "getvalue") else uploaded_file.read()
+            try:
+                uploaded_file.seek(0)
+            except Exception:
+                pass
+            ocr_done = False
+            last_err_detail = ""
 
             # 1. Digital PDF extraction if it is a PDF
             if uploaded_file.name.lower().endswith(".pdf"):
@@ -1215,15 +1220,15 @@ with tab3:
                         text_to_parse = combined
                         st.session_state["ocr_engine_msg"] = "OCR COMPLETED"
                         ocr_done = True
-                except Exception:
-                    pass
+                except Exception as e:
+                    last_err_detail = f"PDF parsing error: {e}"
 
-            # 2. Groq Cloud Vision AI (Uses your GROQ_API_KEY, 0.8s ultra-accurate OCR)
+            # 2. MedCore Clinical Neural AI Vision (Groq Cloud Multimodal Engine)
             if not ocr_done:
                 groq_key = (os.environ.get("GROQ_API_KEY") or "").strip()
                 if groq_key:
                     try:
-                        import base64, requests, io
+                        import base64, requests, io, re
                         from PIL import Image, ImageOps
 
                         img = Image.open(io.BytesIO(file_bytes)).convert("RGB")
@@ -1231,21 +1236,42 @@ with tab3:
                             img = ImageOps.exif_transpose(img)
                         except Exception:
                             pass
-                        max_dim = 1280
+                        max_dim = 1600
                         if max(img.size) > max_dim:
                             scale = max_dim / max(img.size)
                             new_size = (int(img.width * scale), int(img.height * scale))
                             img = img.resize(new_size, Image.Resampling.LANCZOS)
 
                         buf = io.BytesIO()
-                        img.save(buf, format="JPEG", quality=85)
+                        img.save(buf, format="JPEG", quality=90)
                         b64_img = base64.b64encode(buf.getvalue()).decode("utf-8")
 
-                        vision_candidates = [
+                        # Dynamically discover active vision models on Groq
+                        vision_candidates = []
+                        try:
+                            m_resp = requests.get(
+                                "https://api.groq.com/openai/v1/models",
+                                headers={"Authorization": f"Bearer {groq_key}"},
+                                timeout=6,
+                            )
+                            if m_resp.status_code == 200:
+                                for it in m_resp.json().get("data", []):
+                                    mid = it.get("id", "")
+                                    if any(k in mid.lower() for k in ["vision", "qwen", "multimodal"]):
+                                        vision_candidates.append(mid)
+                        except Exception:
+                            pass
+
+                        for fb in [
                             "qwen/qwen3.8-27b",
+                            "meta-llama/llama-3.2-11b-vision-instruct",
+                            "meta-llama/llama-3.2-90b-vision-instruct",
                             "llama-3.2-11b-vision-preview",
                             "llama-3.2-90b-vision-preview",
-                        ]
+                        ]:
+                            if fb not in vision_candidates:
+                                vision_candidates.append(fb)
+
                         prompt = (
                             "Extract all medical tests, biomarkers, laboratory values, units, and reference ranges "
                             "from this report image. If the image is rotated, sideways, or upside-down, read all text in its true upright orientation. "
@@ -1253,47 +1279,103 @@ with tab3:
                             "Pay special attention to final diagnostic result values such as HbA1c, Fasting Blood Glucose, eAG, MPG (Mean Plasma Glucose), Total Cholesterol, Troponin, PSA, CA-125. "
                             "Include all sections (CBC, Lipid Panel, Blood Glucose, Liver, Kidney, Oncology, Electrolytes)."
                         )
+
                         for v_model in vision_candidates:
                             try:
+                                # Primary attempt with max_completion_tokens (preferred for Qwen & reasoning models)
+                                req_payload = {
+                                    "model": v_model,
+                                    "messages": [
+                                        {
+                                            "role": "user",
+                                            "content": [
+                                                {"type": "text", "text": prompt},
+                                                {
+                                                    "type": "image_url",
+                                                    "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"},
+                                                },
+                                            ],
+                                        }
+                                    ],
+                                    "temperature": 0.1,
+                                    "max_completion_tokens": 2048,
+                                }
                                 resp = requests.post(
                                     "https://api.groq.com/openai/v1/chat/completions",
                                     headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
-                                    json={
-                                        "model": v_model,
-                                        "messages": [
-                                            {
-                                                "role": "user",
-                                                "content": [
-                                                    {"type": "text", "text": prompt},
-                                                    {
-                                                        "type": "image_url",
-                                                        "image_url": {"url": f"data:image/jpeg;base64,{b64_img}"},
-                                                    },
-                                                ],
-                                            }
-                                        ],
-                                        "temperature": 0.1,
-                                        "max_tokens": 1200,
-                                    },
-                                    timeout=20,
+                                    json=req_payload,
+                                    timeout=25,
                                 )
+
+                                # If max_completion_tokens isn't supported by this model, try standard max_tokens
+                                if resp.status_code != 200:
+                                    req_payload.pop("max_completion_tokens", None)
+                                    req_payload["max_tokens"] = 2048
+                                    resp = requests.post(
+                                        "https://api.groq.com/openai/v1/chat/completions",
+                                        headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                                        json=req_payload,
+                                        timeout=25,
+                                    )
+
                                 if resp.status_code == 200:
-                                    v_text = resp.json()["choices"][0]["message"]["content"]
-                                    if v_text and len(v_text.strip()) > 15:
-                                        text_to_parse = v_text.strip()
+                                    raw_text = resp.json()["choices"][0]["message"].get("content") or ""
+                                    # Strip reasoning/thinking tags if model is a thinking LLM
+                                    v_text = re.sub(r"<think>.*?</think>", "", raw_text, flags=re.DOTALL).strip()
+                                    if v_text and len(v_text) > 15:
+                                        text_to_parse = v_text
                                         st.session_state["ocr_engine_msg"] = "OCR COMPLETED"
                                         ocr_done = True
                                         break
-                            except Exception:
+                                else:
+                                    err_msg = f"HTTP {resp.status_code}"
+                                    try:
+                                        err_msg = resp.json().get("error", {}).get("message", err_msg)
+                                    except Exception:
+                                        pass
+                                    last_err_detail = err_msg
+                            except Exception as e:
+                                last_err_detail = str(e)
                                 continue
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        last_err_detail = str(e)
+                else:
+                    last_err_detail = "GROQ_API_KEY environment variable not set in Render"
 
-            # 3. Local EasyOCR (if available)
+            # 3. Claude Vision AI Fallback (if Groq Vision didn't complete and ANTHROPIC_API_KEY is available)
+            if not ocr_done:
+                claude_key = (os.environ.get("ANTHROPIC_API_KEY") or "").strip()
+                if claude_key:
+                    try:
+                        import anthropic
+                        c_client = anthropic.Anthropic(api_key=claude_key)
+                        c_resp = c_client.messages.create(
+                            model="claude-3-haiku-20240307",
+                            max_tokens=1500,
+                            messages=[
+                                {
+                                    "role": "user",
+                                    "content": [
+                                        {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": b64_img}},
+                                        {"type": "text", "text": prompt},
+                                    ],
+                                }
+                            ],
+                        )
+                        v_text = c_resp.content[0].text
+                        if v_text and len(v_text.strip()) > 15:
+                            text_to_parse = v_text.strip()
+                            st.session_state["ocr_engine_msg"] = "OCR COMPLETED"
+                            ocr_done = True
+                    except Exception as e:
+                        if not last_err_detail:
+                            last_err_detail = str(e)
+
+            # 4. Local EasyOCR (if available)
             if not ocr_done:
                 try:
-                    import easyocr, PIL.Image, io
-                    img    = PIL.Image.open(io.BytesIO(file_bytes))
+                    import easyocr, PIL.Image, io, numpy as np
+                    img = PIL.Image.open(io.BytesIO(file_bytes))
                     reader = easyocr.Reader(["en"], verbose=False)
                     text_to_parse = " ".join(reader.readtext(np.array(img), detail=0))
                     st.session_state["ocr_engine_msg"] = "OCR COMPLETED"
@@ -1301,7 +1383,7 @@ with tab3:
                 except Exception:
                     pass
 
-            # 4. Local Tesseract (if available)
+            # 5. Local Tesseract (if available)
             if not ocr_done:
                 try:
                     import pytesseract, PIL.Image, io
@@ -1314,7 +1396,12 @@ with tab3:
 
             if not ocr_done:
                 st.session_state["ocr_engine_msg"] = None
-                st.warning("⚠ Could not read image automatically. Please paste report text in the box below or click '📋 Load Sample' to test.")
+                if pasted_text.strip():
+                    st.info("ℹ️ Image OCR did not detect values. Analyzing pasted lab report text instead...")
+                    text_to_parse = pasted_text.strip()
+                else:
+                    err_hint = f" ({last_err_detail})" if last_err_detail else ""
+                    st.warning(f"⚠ Could not read image automatically{err_hint}. Please paste report text in the box below or click '📋 Load Sample' to test.")
 
         if not text_to_parse and uploaded_file is None:
             st.info("ℹ️ Please upload a report image/PDF or paste your lab report text above (or click '📋 Load Sample').")
