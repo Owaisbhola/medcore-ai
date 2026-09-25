@@ -1284,7 +1284,7 @@ with tab3:
 
                         for v_model in vision_candidates:
                             try:
-                                # Clean payload without conflicting temperature or token arguments
+                                # Set max_tokens to 600 so it strictly complies with Groq Free Tier (1000 OTPM limit)
                                 req_payload = {
                                     "model": v_model,
                                     "messages": [
@@ -1299,6 +1299,7 @@ with tab3:
                                             ],
                                         }
                                     ],
+                                    "max_tokens": 600,
                                 }
                                 resp = requests.post(
                                     "https://api.groq.com/openai/v1/chat/completions",
@@ -1306,6 +1307,17 @@ with tab3:
                                     json=req_payload,
                                     timeout=25,
                                 )
+
+                                # If model prefers max_completion_tokens over max_tokens
+                                if resp.status_code != 200 and "max_completion_tokens" in resp.text:
+                                    req_payload.pop("max_tokens", None)
+                                    req_payload["max_completion_tokens"] = 600
+                                    resp = requests.post(
+                                        "https://api.groq.com/openai/v1/chat/completions",
+                                        headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                                        json=req_payload,
+                                        timeout=25,
+                                    )
 
                                 if resp.status_code == 200:
                                     raw_text = resp.json()["choices"][0]["message"].get("content") or ""
