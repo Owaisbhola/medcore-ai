@@ -844,7 +844,7 @@ def groq_full_summary(
         except Exception:
             continue
 
-    return "AI summary generated via Fast Clinical Engine."
+    return "AI summary generated via MedCore Clinical Neural AI."
 
 
 

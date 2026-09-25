@@ -1474,7 +1474,7 @@ with tab3:
             st.markdown("<br>", unsafe_allow_html=True)
             backend_options = []
             if groq_ok:
-                backend_options.append("Groq Llama-3 (Cloud, Free)")
+                backend_options.append("⚡ MedCore Clinical Neural AI (Cloud)")
             if ollama_up:
                 backend_options.append("Ollama (Local/Ngrok)")
             if claude_ok:
@@ -1490,7 +1490,7 @@ with tab3:
             if st.button("✨  Polish with AI", key="btn_ai_summary"):
                 with st.spinner("Generating plain-language summary…"):
                     lang = st.session_state.get("ocr_summary_lang", "English")
-                    if backend.startswith("Groq"):
+                    if backend.startswith("⚡ MedCore") or backend.startswith("Groq"):
                         st.session_state["ocr_ai_summary"] = rpx.groq_full_summary(result, language=lang)
                     elif backend.startswith("Ollama"):
                         st.session_state["ocr_ai_summary"] = rpx.ollama_full_summary(result, language=lang, model=ollama_model)
@@ -1502,7 +1502,7 @@ with tab3:
         else:
             st.markdown(
                 '<div style="color:#4a6a8a;font-size:11px;margin-top:8px">'
-                '💡 Want an AI-polished write-up? Add a free <code>GROQ_API_KEY</code> in Render or run Ollama locally.'
+                '💡 Want an AI-polished write-up? Add <code>GROQ_API_KEY</code> in Render or run Ollama locally.'
                 '</div>', unsafe_allow_html=True,
             )
 
@@ -1748,17 +1748,19 @@ with tab5:
     groq_ok_chat = bool(os.environ.get("GROQ_API_KEY", "").strip())
 
     # Backend + model picker
+    PRIMARY_ENGINE_LABEL = "⚡ MedCore Clinical Neural AI (High-Speed)"
     backend_options = []
     if groq_ok_chat:
-        backend_options.append("🚀 Groq Cloud AI (High-Speed Streaming)")
-    backend_options.append("⚡ Fast Clinical Engine (Instant)")
+        backend_options.append(PRIMARY_ENGINE_LABEL)
     if ollama_up_chat:
         backend_options.append("🤖 Ollama Llama-3 (Local/Ngrok)")
     if claude_ok_chat:
         backend_options.append("🧠 Claude API (Streaming)")
+    if not backend_options:
+        backend_options.append(PRIMARY_ENGINE_LABEL)
 
     chat_backend = st.radio("Intelligence Engine:", backend_options, horizontal=True, key="chat_backend_choice")
-    chat_model = "groq-auto" if chat_backend.startswith("🚀 Groq") else "llama3"
+    chat_model = "groq-auto" if (chat_backend.startswith("⚡ MedCore") or chat_backend.startswith("🚀 Groq")) else "llama3"
     if chat_backend.startswith("🤖 Ollama"):
         pulled = rpx.ollama_list_models()
         chat_model = pulled[0] if pulled else "llama3"
@@ -1766,7 +1768,7 @@ with tab5:
     if not groq_ok_chat and not ollama_up_chat and not claude_ok_chat:
         st.markdown(
             '<div style="color:#4a6a8a;font-size:11px;margin-bottom:8px">'
-            '💡 Fast Clinical Engine active. To enable <b>Cloud Llama 3 (Free)</b>, add <code>GROQ_API_KEY</code> in Render Environment Variables.'
+            '💡 MedCore Clinical Neural AI active in offline mode. For real-time streaming, add <code>GROQ_API_KEY</code> in Render Environment Variables.'
             '</div>', unsafe_allow_html=True,
         )
 
@@ -1792,7 +1794,7 @@ with tab5:
         with st.chat_message("assistant", avatar="🏥"):
             parsed_ctx = st.session_state.get("ocr_parsed_result")
             backend_key = "fast"
-            if chat_backend.startswith("🚀 Groq"):
+            if chat_backend.startswith("⚡ MedCore") or chat_backend.startswith("🚀 Groq"):
                 backend_key = "groq"
                 chat_model = "groq-auto"
             elif chat_backend.startswith("🤖 Ollama"):

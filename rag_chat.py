@@ -648,7 +648,7 @@ def stream_answer(
         import os
         groq_key = (os.environ.get("GROQ_API_KEY") or "").strip()
         if not groq_key:
-            yield "⚠️ **Groq API Key Missing:** Please add your `GROQ_API_KEY` in Render Environment Variables."
+            yield "⚠️ **Neural Engine Key Missing:** Please verify your `GROQ_API_KEY` configuration in Render Environment Variables."
             return
 
         import requests, json
@@ -680,9 +680,8 @@ def stream_answer(
                 )
                 if resp.status_code == 401:
                     yield (
-                        "⚠️ **Invalid Groq API Key (401 Unauthorized):**\n\n"
-                        "The key in Render is incorrect or incomplete. Please go to [console.groq.com/keys](https://console.groq.com/keys), "
-                        "create a new API key, copy the complete `gsk_...` key, and update `GROQ_API_KEY` in Render."
+                        "⚠️ **Neural Engine Authentication Notice (401 Unauthorized):**\n\n"
+                        "The API key in Render is invalid or incomplete. Please verify the `GROQ_API_KEY` in Render Environment Variables."
                     )
                     return
                 elif resp.status_code != 200:
@@ -694,7 +693,7 @@ def stream_answer(
                     last_error = err_text
                     if _is_groq_model_error(resp.status_code, err_text):
                         continue
-                    yield f"⚠️ **Groq API Error:** {err_text}"
+                    yield f"⚠️ **Clinical Neural AI Notice:** {err_text}"
                     return
 
                 # Successfully connected: prioritize this working model for future calls
@@ -812,7 +811,7 @@ def answer_question(
         import os
         groq_key = (os.environ.get("GROQ_API_KEY") or "").strip()
         if not groq_key:
-            return "⚠️ Groq API key is missing. Add `GROQ_API_KEY` in Render Environment Variables.", chunks
+            return "⚠️ Neural Engine key is missing. Please verify `GROQ_API_KEY` in Render Environment Variables.", chunks
 
         import requests
         candidate_models = get_groq_candidate_models(groq_key)
@@ -838,7 +837,7 @@ def answer_question(
                     timeout=15,
                 )
                 if resp.status_code == 401:
-                    return "⚠️ Invalid Groq API Key (401 Unauthorized). Please check your key at [console.groq.com/keys](https://console.groq.com/keys) and update `GROQ_API_KEY` in Render.", chunks
+                    return "⚠️ Neural Engine Authentication Notice (401 Unauthorized). Please verify `GROQ_API_KEY` in Render.", chunks
                 elif resp.status_code != 200:
                     err_msg = resp.text
                     try:
@@ -848,7 +847,7 @@ def answer_question(
                     last_err = err_msg
                     if _is_groq_model_error(resp.status_code, err_msg):
                         continue
-                    return f"⚠️ Groq API Error: {err_msg}", chunks
+                    return f"⚠️ Clinical Neural AI Notice: {err_msg}", chunks
 
                 global _GROQ_RESOLVED_MODELS
                 if _GROQ_RESOLVED_MODELS and m_try in _GROQ_RESOLVED_MODELS:
