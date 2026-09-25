@@ -1257,17 +1257,19 @@ with tab3:
                             if m_resp.status_code == 200:
                                 for it in m_resp.json().get("data", []):
                                     mid = it.get("id", "")
-                                    if any(k in mid.lower() for k in ["vision", "qwen", "multimodal"]):
+                                    # Skip preview/decommissioned models
+                                    if "preview" in mid.lower():
+                                        continue
+                                    if any(k in mid.lower() for k in ["vision", "qwen", "multimodal", "scout"]):
                                         vision_candidates.append(mid)
                         except Exception:
                             pass
 
                         for fb in [
                             "qwen/qwen3.8-27b",
+                            "meta-llama/llama-4-scout-17b-16e-instruct",
                             "meta-llama/llama-3.2-11b-vision-instruct",
                             "meta-llama/llama-3.2-90b-vision-instruct",
-                            "llama-3.2-11b-vision-preview",
-                            "llama-3.2-90b-vision-preview",
                         ]:
                             if fb not in vision_candidates:
                                 vision_candidates.append(fb)
@@ -1282,7 +1284,7 @@ with tab3:
 
                         for v_model in vision_candidates:
                             try:
-                                # Primary attempt with max_completion_tokens (preferred for Qwen & reasoning models)
+                                # Clean payload without conflicting temperature or token arguments
                                 req_payload = {
                                     "model": v_model,
                                     "messages": [
@@ -1297,8 +1299,6 @@ with tab3:
                                             ],
                                         }
                                     ],
-                                    "temperature": 0.1,
-                                    "max_completion_tokens": 2048,
                                 }
                                 resp = requests.post(
                                     "https://api.groq.com/openai/v1/chat/completions",
@@ -1306,17 +1306,6 @@ with tab3:
                                     json=req_payload,
                                     timeout=25,
                                 )
-
-                                # If max_completion_tokens isn't supported by this model, try standard max_tokens
-                                if resp.status_code != 200:
-                                    req_payload.pop("max_completion_tokens", None)
-                                    req_payload["max_tokens"] = 2048
-                                    resp = requests.post(
-                                        "https://api.groq.com/openai/v1/chat/completions",
-                                        headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
-                                        json=req_payload,
-                                        timeout=25,
-                                    )
 
                                 if resp.status_code == 200:
                                     raw_text = resp.json()["choices"][0]["message"].get("content") or ""
@@ -1333,6 +1322,9 @@ with tab3:
                                         err_msg = resp.json().get("error", {}).get("message", err_msg)
                                     except Exception:
                                         pass
+                                    # If the model was decommissioned or not found, silently try next model
+                                    if any(w in err_msg.lower() for w in ["decommissioned", "not exist", "not found", "deprecated"]):
+                                        continue
                                     last_err_detail = err_msg
                             except Exception as e:
                                 last_err_detail = str(e)
